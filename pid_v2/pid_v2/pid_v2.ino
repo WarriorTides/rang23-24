@@ -3,103 +3,48 @@
 #include "MS5837.h"
 #include <PID_v1.h>
 #include <Wire.h>
-
-double dKp = 2, dKi = 5, dKd = 1;
-
-double depthSetpoint, depthInput, depthOutput;
+// 1369.10
+// 17:13:19.543 -> i 0.20
+// 17:13:19.543 -> d 2338975.80
+ double dKp = 1168.75, dKi = 0.16, dKd =2190531.80;
+double  depthInput, depthOutput;
+double depthSetpoint=1;
 
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, dKp, dKi, dKd, DIRECT);
-int FRV_pin = 6, FLV_pin = 2, BRV_pin = 46, BLV_pin = 5, FRH_pin = 4, FLH_pin = 2, BRH_pin = 7, BLH_pin = 3;
+
 Servo top_front;
 Servo top_back;
 
-// Pin definitions
-int myLed = 13;  // Set up pin 13 led for toggling
+
+
 MS5837 depthSensor;
 
 void setup() {
     Wire.begin();
     Serial.begin(9600);
-    depthPID.SetOutputLimits(-400, 400);
+    depthPID.SetOutputLimits(-100, 100);
     depthPID.SetMode(AUTOMATIC);
     depthSensorSetup();
     motorSetup();
     Serial.println("ready");
 }
+long microseconds;
 
 void loop() {
+          long prevMicroseconds = microseconds;
+        microseconds = micros();
     depthSensor.read();
     depthInput = depthSensor.depth();
     depthPID.Compute();
     Serial.println("depth input " + String(depthInput) + " output " + String(depthOutput) + " setpoint " +
                    String(depthSetpoint));
-    String input = Serial.readStringUntil('x');
-    if (input.substring(0, input.length() - 2).equals("open-claw")) {
-        claw.writeMicroseconds(0);
-    }
-    if (input.substring(0, input.length() - 2).equals("close-claw")) {
-        claw.writeMicroseconds(255);
-    }
-    int dir = input.substring(0, 1).toInt();
-    int thruster_value = input.substring(2, input.length() - 1).toFloat() * 100;
-
-    Serial.println("direction " + String(dir) + " thruster_value " + String(thruster_value));
-    //sway
-    if (dir == 0) {
-        //  Serial.println("writing values to FRH, BRH, FLH, BLH");
-        front_right_vertical.writeMicroseconds(1500);
-        back_right_vertical.writeMicroseconds(1500);
-        front_left_vertical.writeMicroseconds(1500);
-        back_left_vertical.writeMicroseconds(1500);
-
-        front_right_horizontal.writeMicroseconds(thruster_value * -1 + 1500);
-        back_right_horizontal.writeMicroseconds(thruster_value + 1500);
-        front_left_horizontal.writeMicroseconds(thruster_value + 1500);
-        back_left_horizontal.writeMicroseconds(thruster_value * -1 + 1500);
-
-    }
-        //surge
-    else if (dir == 1) {
-        front_right_vertical.writeMicroseconds(1500);
-        back_right_vertical.writeMicroseconds(1500);
-        front_left_vertical.writeMicroseconds(1500);
-        back_left_vertical.writeMicroseconds(1500);
-
-        front_right_horizontal.writeMicroseconds(thruster_value + 1500);
-        front_left_horizontal.writeMicroseconds(thruster_value + 1500);
-        back_right_horizontal.writeMicroseconds(thruster_value + 1500);
-        back_left_horizontal.writeMicroseconds(thruster_value + 1500);
-    }
-        //heave
-    else if (dir == 3) {
-        depthPID.SetMode(MANUAL);
-        front_right_horizontal.writeMicroseconds(1500);
-        back_right_horizontal.writeMicroseconds(1500);
-        front_left_horizontal.writeMicroseconds(1500);
-        back_left_horizontal.writeMicroseconds(1500);
-
-        front_right_vertical.writeMicroseconds(thruster_value + 1500);
-        front_left_vertical.writeMicroseconds(thruster_value + 1500);
-        back_right_vertical.writeMicroseconds(thruster_value + 1500);
-        back_left_vertical.writeMicroseconds(thruster_value + 1500);
-    }
-        //yaw
-    else if (dir == 4) {
-        front_right_vertical.writeMicroseconds(1500);
-        back_right_vertical.writeMicroseconds(1500);
-        front_left_vertical.writeMicroseconds(1500);
-        back_left_vertical.writeMicroseconds(1500);
-
-        front_right_horizontal.writeMicroseconds(thruster_value + 1500);
-        back_right_horizontal.writeMicroseconds(thruster_value + 1500);
-        front_left_horizontal.writeMicroseconds(-1 * thruster_value + 1500);
-        back_left_horizontal.writeMicroseconds(-1 * thruster_value + 1500);
-    }
+    
+    
     depthPID.SetMode(AUTOMATIC);
-    front_right_vertical.writeMicroseconds(depthOutput + 1500);
-    front_left_vertical.writeMicroseconds(depthOutput + 1500);
-    back_right_vertical.writeMicroseconds(depthOutput + 1500);
-    back_left_vertical.writeMicroseconds(depthOutput + 1500);
+    top_back.writeMicroseconds(depthOutput + 1500);
+    top_front.writeMicroseconds(depthOutput + 1500);
+    // delay();
+            while (micros() - microseconds < 250) delayMicroseconds(1);
 
 }
 
@@ -111,8 +56,8 @@ void depthSensorSetup() {
 }
 
 void motorSetup() {
-  top_front = 5;
-  top_back = 2;
+  top_front.attach(5);
+  top_back.attach(2);
   top_front.writeMicroseconds(1500);
   top_back.writeMicroseconds(1500);
   delay(7000);
