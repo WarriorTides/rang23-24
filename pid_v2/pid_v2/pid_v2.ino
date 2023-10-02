@@ -3,10 +3,8 @@
 #include "MS5837.h"
 #include <PID_v1.h>
 #include <Wire.h>
-// 1369.10
-// 17:13:19.543 -> i 0.20
-// 17:13:19.543 -> d 2338975.80
- double dKp = 1168.75, dKi = 0.16, dKd =2190531.80;
+
+double dKp = 2, dKi = 5, dKd = 1;
 double  depthInput, depthOutput;
 double depthSetpoint=1;
 
@@ -36,7 +34,7 @@ void loop() {
     depthSensor.read();
     depthInput = depthSensor.depth();
     depthPID.Compute();
-    Serial.println("depth input " + String(depthInput) + " output " + String(depthOutput) + " setpoint " +
+    Serial.println("DepthInput:f" + String(depthInput) + ", Output:" + String(depthOutput) + ", Setpoint: " +
                    String(depthSetpoint));
     
     

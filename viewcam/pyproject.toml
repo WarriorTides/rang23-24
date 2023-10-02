@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "viewcam"
+version = "0.1.0"
+description = ""
+authors = ["amaheshwari01 <acoding2007@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opencv-python = "^4.8.1.78"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
