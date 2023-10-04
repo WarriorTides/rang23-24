@@ -4,9 +4,9 @@
 #include <PID_v1.h>
 #include <Wire.h>
 
-double dKp = 2, dKi = 5, dKd = 1;
+double dKp = 500, dKi = 5, dKd = 1;
 double  depthInput, depthOutput;
-double depthSetpoint=1;
+double depthSetpoint=0.5;
 
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, dKp, dKi, dKd, DIRECT);
 
@@ -20,7 +20,7 @@ MS5837 depthSensor;
 void setup() {
     Wire.begin();
     Serial.begin(9600);
-    depthPID.SetOutputLimits(-100, 100);
+    depthPID.SetOutputLimits(-200, 200);
     depthPID.SetMode(AUTOMATIC);
     depthSensorSetup();
     motorSetup();
@@ -29,20 +29,35 @@ void setup() {
 long microseconds;
 
 void loop() {
-          long prevMicroseconds = microseconds;
-        microseconds = micros();
+if (Serial.available()) {
+    float incomingValue = Serial.parseFloat();
+    if (incomingValue!=0){
+    depthSetpoint = incomingValue;
+    }
+    // Do something with the float value
+  } else {
+    long prevMicroseconds = microseconds;
+    microseconds = micros();
     depthSensor.read();
     depthInput = depthSensor.depth();
     depthPID.Compute();
-    Serial.println("DepthInput:f" + String(depthInput) + ", Output:" + String(depthOutput) + ", Setpoint: " +
-                   String(depthSetpoint));
-    
+    Serial.print("DepthInput:" );
+    Serial.print( (depthInput) );
+    Serial.print("," );
+    Serial.print("Setpoint:" );
+    Serial.println( (depthSetpoint) );
+    // if()
+    // float floatVariable = Serial.parseFloat();
+    // Serial.println(Serial.readStringUntil("/n"));
+
+
     
     depthPID.SetMode(AUTOMATIC);
     top_back.writeMicroseconds(depthOutput + 1500);
     top_front.writeMicroseconds(depthOutput + 1500);
     // delay();
             while (micros() - microseconds < 250) delayMicroseconds(1);
+  }
 
 }
 

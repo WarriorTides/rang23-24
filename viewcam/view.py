@@ -2,7 +2,7 @@ import cv2
 
 # camera_ip = input("Ending IP Number? (Just the last octet. If it is 192.168.1.2, type 2) >> ")
 
-cap = cv2.VideoCapture("http://cam1.local:5000/")
+cap = cv2.VideoCapture("http://169.254.74.121:5000/")
 # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('H', '2', '6', '4'))
 # cv2.namedWindow("Camera Feed", cv2.WND_PROP_FULLSCREEN)
 # cv2.setWindowProperty("Camera Feed", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
