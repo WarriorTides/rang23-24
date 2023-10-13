@@ -45,6 +45,6 @@ echo "disable_camera_led=1" >> /boot/config.txt
 # echo "@reboot bash /home/pi/rang23-24/camStream/stream.sh" >> crontab_new
 # crontab crontab_new
 # rm crontab_new
-
+/home/pi/rang23-24/camStream/stream.sh
 
 reboot now
