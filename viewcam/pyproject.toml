@@ -8,6 +8,9 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 opencv-python = "^4.8.1.78"
+flask = "^3.0.0"
+requests = "^2.31.0"
+flask-opencv-streamer = "^1.4"
 
 
 [build-system]

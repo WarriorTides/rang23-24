@@ -26,10 +26,10 @@ dpkg -l | grep ncat || apt install ncat -y
 dpkg -l | grep nmap || apt install nmap -y
 
 # Make stream.sh launch on startup
-# crontab -l > crontab_new
-# echo "@reboot bash /home/jhsrobo/camera_stream/stream.sh" >> crontab_new
-# crontab crontab_new
-# rm crontab_new
+crontab -l > crontab_new
+echo "@reboot bash /home/pi/rang23-24/camStream/stream.sh" >> crontab_new
+crontab crontab_new
+rm crontab_new
 
 # enable cameras
 raspi-config nonint do_legacy 0
@@ -40,11 +40,5 @@ echo "gpu_mem=256" >> /boot/config.txt
 
 # turn off the red light. if you leave it on, it reflects off the glass
 echo "disable_camera_led=1" >> /boot/config.txt
-
-# crontab -l > crontab_new
-# echo "@reboot bash /home/pi/rang23-24/camStream/stream.sh" >> crontab_new
-# crontab crontab_new
-# rm crontab_new
-#/home/pi/rang23-24/camStream/stream.sh
 
 reboot now

@@ -7,11 +7,19 @@ if [[ "$(id -u)" != 0 ]]
   exit
 fi
 
+grep -q "Setup" /etc/rc.local || ( echo "Please run setup!" && exit )
 raspi-config nonint do_legacy 0
+
+# Start up camera streamer
+
 
 export ROTATION=0
 export WIDTH=1280
 export HEIGHT=720
 export FPS=22
 
-raspivid -n -cd MJPEG -awb auto -ifx none -b 25000000 -br 60 -t 0 -rot ${ROTATION} -w ${WIDTH} -h ${HEIGHT} -fps ${FPS} -o - | ncat -lkv4 5000
+
+
+while true; do
+raspivid -n -cd MJPEG -awb auto -ifx none -b 25000000 -br 60 -t 0 -rot ${ROTATION} -w ${WIDTH} -h ${HEIGHT} -fps ${FPS} -o - | ncat -lv4 5000
+done
