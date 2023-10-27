@@ -1,7 +1,7 @@
 import cv2
 
 
-cap = cv2.VideoCapture("http://maincam.local:5000/")
+cap = cv2.VideoCapture("http://bottomcam.local:5000/")
 
 
 while cap.isOpened():
