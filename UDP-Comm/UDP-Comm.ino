@@ -26,7 +26,6 @@ EthernetUDP Udp;
 
 // String[] data;
 // unsigned long start_time, end_time, execution_time;
-
 void setup()
 {
   // You can use Ethernet.init(pin) to configure the CS pin
