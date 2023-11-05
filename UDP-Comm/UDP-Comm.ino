@@ -4,15 +4,10 @@
 #include <EthernetUdp.h>
 #include <Servo.h>
 
-Servo fr;
-Servo fl;
-Servo bl;
-Servo
-
-    // Enter a MAC address and IP address for your controller below.
-    // The IP address will be dependent on your local network:
-    byte mac[] = {
-        0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
+// Enter a MAC address and IP address for your controller below.
+// The IP address will be dependent on your local network:
+byte mac[] = {
+    0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 IPAddress ip(192, 168, 1, 123);
 
 unsigned int localPort = 8888; // local port to listen on
