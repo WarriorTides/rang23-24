@@ -11,11 +11,11 @@ void setup()
 
     uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
 
-    Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
+    Ethernet.begin(mac, IPAddress(192, 168, 68, 151));
 
-    int success = udp.begin(5000);
+    int success = udp.begin(8888);
 
-    Serial.print("initialize: ");
+    Serial.print("idddnitialize: ");
     Serial.println(success ? "success" : "failed");
 }
 
