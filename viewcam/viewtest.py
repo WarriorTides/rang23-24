@@ -1,11 +1,12 @@
 from flask import Flask, jsonify, send_file, Response
+from flask_cors import CORS, cross_origin  # Add this line
 
 import cv2
 
 app = Flask(__name__)
+CORS(app)  # Add this line
 
 
-# maincap = cv2.VideoCapture("http://maincam.local:5000/")
 def gen_frames(cap):
     while True:
         success, frame = cap.read()  # read the camera frame
@@ -18,11 +19,11 @@ def gen_frames(cap):
 
 
 cams = ["maincam", "bottomcam"]
-# caps = [cv2.VideoCapture(cam) for cam in possible_cams]
 caps = [cv2.VideoCapture(0), cv2.VideoCapture(0)]
 
 
 @app.route("/<string:cam>")
+@cross_origin()  # Add this line
 def streamcam(cam):
     if cam not in cams:
         return "Invalid cam"
@@ -34,10 +35,11 @@ def streamcam(cam):
 
 
 @app.route("/")
+@cross_origin()  # Add this line
 def index():
     # return a json of all the cams
     return jsonify(cams)
 
 
 if __name__ == "__main__":
-    app.run(port=1100)
+    app.run(port=5000)
