@@ -34,6 +34,7 @@ void loop()
 
             Serial.print(("received: '"));
             Serial.print(msg);
+            types(msg);
 
             free(msg);
         } while ((size = udp.available()) > 0);
@@ -84,3 +85,8 @@ void loop()
         //     Serial.println(success ? "success" : "failed");
     }
 }
+void types(String a) { Serial.println("it's a String"); }
+void types(int a) { Serial.println("it's an int"); }
+void types(char *a) { Serial.println("it's a char*"); }
+void types(float a) { Serial.println("it's a float"); }
+void types(bool a) { Serial.println("it's a bool"); }
