@@ -2,7 +2,7 @@
 
 #include <UIPEthernet.h>
 #include "utility/logging.h"
-
+#include <Servo.h>
 EthernetUDP udp;
 Servo t1;
 Servo t2;
@@ -33,7 +33,7 @@ void setup()
 
     uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
 
-    Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
+    Ethernet.begin(mac, IPAddress(192, 168, 68, 151));
 
     int success = udp.begin(8888);
 
@@ -55,10 +55,13 @@ void loop()
             int len = udp.read(msg, size + 1);
             msg[len] = 0;
 
-            Serial.print(("received: '"));
-            Serial.print(msg);
+            Serial.print(("received: "));
+            Serial.println(msg);
             char command = msg[0];
             String data = String(msg).substring(2);
+            Serial.print("Command: ");
+            Serial.println(command);
+
             if (command == 'c')
             {
                 // Convert String into an Int Array that contains microseconds for all 8 thrusters and Servo Angles
@@ -67,17 +70,18 @@ void loop()
                 int i = 0;
                 while (!done)
                 {
-                    int index = data.indexOf('|');
+                    int index = data.indexOf(',');
                     if (index == -1)
                     {
                         done = true;
                         output[i] = data.toInt();
+                        Serial.println(output[i]);
                     }
                     else
                     {
                         output[i] = data.substring(0, index).toInt();
-                        Serial.println(output[i])
-                            data = data.substring(index + 1);
+                        Serial.println(output[i]);
+                        data = data.substring(index + 1);
                         i++;
                     }
                 }

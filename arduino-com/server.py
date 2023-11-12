@@ -4,7 +4,7 @@ import socket
 import time
 
 # Define the IP address and port of the Arduino
-arduino_ip = "192.168.1.123"
+arduino_ip = "192.168.1.151"
 arduino_port = 8888
 
 # Create a UDP socket
@@ -27,10 +27,11 @@ def sendUDP(message):
 # handle socketio messages
 @socketio.on("message")
 def handle_message(data):
-    print("received message: " + data)
-    sendUDP(str(data))
+    print("received message: " + str(data))
+
+    send(str(data), broadcast=True)
 
 
 # run app
 if __name__ == "__main__":
-    socketio.run(app, port=5001)
+    socketio.run(app, port=5001, debug=True, use_reloader=False)
