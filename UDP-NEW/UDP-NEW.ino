@@ -4,19 +4,42 @@
 #include "utility/logging.h"
 
 EthernetUDP udp;
+Servo t1;
+Servo t2;
+Servo t3;
+Servo t4;
+Servo t5;
+Servo t6;
+Servo t7;
+Servo t8;
+Servo s1;
+Servo s2;
+Servo s3;
 
 void setup()
 {
     Serial.begin(9600);
+    t1.attach(6);
+    t2.attach(8);
+    t3.attach(10);
+    t4.attach(12);
+    t5.attach(2);
+    t6.attach(4);
+    t7.attach(14);
+    t8.attach(16);
+    s1.attach(9);
+    s2.attach(5);
+    s3.attach(7);
 
     uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
 
-    Ethernet.begin(mac, IPAddress(192, 168, 68, 151));
+    Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
 
     int success = udp.begin(8888);
 
-    Serial.print("idddnitialize: ");
+    Serial.print("initialize: ");
     Serial.println(success ? "success" : "failed");
+    Serial.println(Ethernet.localIP());
 }
 
 void loop()
@@ -34,14 +57,48 @@ void loop()
 
             Serial.print(("received: '"));
             Serial.print(msg);
-            types(msg);
+            char command = msg[0];
+            String data = String(msg).substring(2);
+            if (command == 'c')
+            {
+                // Convert String into an Int Array that contains microseconds for all 8 thrusters and Servo Angles
+                int output[11];
+                boolean done = false;
+                int i = 0;
+                while (!done)
+                {
+                    int index = data.indexOf('|');
+                    if (index == -1)
+                    {
+                        done = true;
+                        output[i] = data.toInt();
+                    }
+                    else
+                    {
+                        output[i] = data.substring(0, index).toInt();
+                        Serial.println(output[i])
+                            data = data.substring(index + 1);
+                        i++;
+                    }
+                }
+                // write to thrusters
+                t1.writeMicroseconds(output[0]);
+                t2.writeMicroseconds(output[1]);
+                t3.writeMicroseconds(output[2]);
+                t4.writeMicroseconds(output[3]);
+                t5.writeMicroseconds(output[4]);
+                t6.writeMicroseconds(output[5]);
+                t7.writeMicroseconds(output[6]);
+                t8.writeMicroseconds(output[7]);
+                s1.write(output[8]);
+                s2.write(output[9]);
+                s3.write(output[10]);
+            }
 
             free(msg);
         } while ((size = udp.available()) > 0);
         // finish reading this packet:
         udp.flush();
-
-        Serial.println(("'"));
 
         //     int success;
         //     do
@@ -85,8 +142,3 @@ void loop()
         //     Serial.println(success ? "success" : "failed");
     }
 }
-void types(String a) { Serial.println("it's a String"); }
-void types(int a) { Serial.println("it's an int"); }
-void types(char *a) { Serial.println("it's a char*"); }
-void types(float a) { Serial.println("it's a float"); }
-void types(bool a) { Serial.println("it's a bool"); }
