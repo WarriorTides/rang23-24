@@ -1,13 +1,13 @@
 #include <Adafruit_BNO055.h>
 
-Adafruit_BNO055 bno = Adafruit_BNO055();
+Adafruit_BNO055 bno = Adafruit_BNO055(0x)
 
 void setup() {
   Serial.begin(9600);
 
   // Initialize the BNO08x
   if (!bno.begin()) {
-    Serial.println("Failed to initialize BNO08x");
+    Serial.println("Failed` to initialize BNO08x");
     while (1);
   }
 
