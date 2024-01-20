@@ -10,6 +10,14 @@ python = "^3.11"
 serial = "^0.0.97"
 flask = "^3.0.0"
 flask-socketio = "^5.3.6"
+websockets = "^12.0"
+pygame = "^2.5.2"
+numpy = "^1.26.2"
+pydualsense = "^0.7.0"
+sphinx = "^7.2.6"
+furo = "^2023.9.10"
+python-socketio = "^5.11.0"
+websocket-client = "^1.7.0"
 
 
 [build-system]

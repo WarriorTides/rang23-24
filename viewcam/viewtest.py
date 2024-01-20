@@ -19,7 +19,7 @@ def gen_frames(cap):
 
 
 cams = ["maincam", "bottomcam"]
-caps = [cv2.VideoCapture(0), cv2.VideoCapture(0)]
+caps = ["http://bob.local:5000/", cv2.VideoCapture(0)]
 
 
 @app.route("/<string:cam>")
