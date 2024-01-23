@@ -32,7 +32,6 @@ def gen_frames(cap, camindex):
 
 
 possible_cams = ["http://bob.local:5000/", "http://bottomcam.local:5000/"]
-# possible_cams = ["http://bottomcam.local", "http://127.0.0.1:1100/bottomcam"]
 cams = ["maincam", "bottomcam"]
 caps = [cv2.VideoCapture(cam) for cam in possible_cams]
 

@@ -73,14 +73,22 @@ void udpSerialPrint(uint16_t dest_port, uint8_t src_ip[IP_LEN], uint16_t src_por
       }
     }
     // write to thrusters
-    t1.writeMicroseconds(output[0]);
-    t2.writeMicroseconds(output[1]);
-    t3.writeMicroseconds(output[2]);
-    t4.writeMicroseconds(output[3]);
-    t5.writeMicroseconds(output[4]);
-    t6.writeMicroseconds(output[5]);
-    t7.writeMicroseconds(output[6]);
-    t8.writeMicroseconds(output[7]);
+    // t1.writeMicroseconds(output[0]);
+    // t2.writeMicroseconds(output[1]);
+    // t3.writeMicroseconds(output[2]);
+    // t4.writeMicroseconds(output[3]);
+    // t5.writeMicroseconds(output[4]);
+    // t6.writeMicroseconds(output[5]);
+    // t7.writeMicroseconds(output[6]);
+    // t8.writeMicroseconds(output[7]);
+      t1.writeMicroseconds(1500);
+  t2.writeMicroseconds(1500);
+  t3.writeMicroseconds(1500);
+  t4.writeMicroseconds(1500);
+  t5.writeMicroseconds(1500);
+  t6.writeMicroseconds(1500);
+  t7.writeMicroseconds(1500);
+  t8.writeMicroseconds(1500);
     s1.write(output[8]);
     s2.write(output[9]);
     s3.write(output[10]);
@@ -104,6 +112,17 @@ void setup()
   s2.attach(5);
   s3.attach(7);
   Serial.println("Initializing");
+  t1.writeMicroseconds(1500);
+  t2.writeMicroseconds(1500);
+  t3.writeMicroseconds(1500);
+  t4.writeMicroseconds(1500);
+  t5.writeMicroseconds(1500);
+  t6.writeMicroseconds(1500);
+  t7.writeMicroseconds(1500);
+  t8.writeMicroseconds(1500);
+  delay(7000);
+  Serial.println("THRUSTER DELAY DONE");
+
 
   // Change 'SS' to your Slave Select pin, if you arn't using the default pin
   if (ether.begin(sizeof Ethernet::buffer, mymac, SS) == 0)
@@ -123,7 +142,7 @@ void setup()
   ether.udpServerListenOnPort(&udpSerialPrint, 1337);
 
   // register udpSerialPrint() to port 42.
-  ether.udpServerListenOnPort(&udpSerialPrint, 42);
+  // ether.udpServerListenOnPort(&udpSerialPrint, 42);
 }
 
 void loop()

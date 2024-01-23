@@ -22,15 +22,15 @@ def disconnect():
     print("I'm disconnected!")
 
 
-SEND_UDP = False
+SEND_UDP = True
 MAX_TROTTLE = 0.7
-arduino_ip = "192.168.1.112"
-arduino_port = 1337
+arduino_ip = "192.168.1.151"
+arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
 
 
-device_ip = "192.168.1.164"
+device_ip = "192.168.1.131"
 
 os.environ["SDL_VIDEO_ALLOW_SCREENSAVER"] = "1"
 os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
@@ -197,7 +197,7 @@ class mainProgram(object):
             sock.sendto(self.curMessage.encode(), ARDUINO_DEVICE)
             print(f"Sent: {self.curMessage}")
             print("Waiting for response...")
-            data, server = sock.recvfrom(1337)
+            data, server = sock.recvfrom(8888)
             print(f"Received: {data.decode()}")
 
     def quit(self, status=0):
