@@ -1,6 +1,8 @@
+import os
+import subprocess
 import time
 from flask import Flask, jsonify, send_file, Response
-
+import sys
 import cv2
 
 app = Flask(__name__)
@@ -20,19 +22,13 @@ def gen_frames(cap, camindex):
                     b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
                 )
         except ValueError as e:
-            print(e)
-            yield (
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n"
-                + open("pi.jpg", "rb").read()
-                + b"\r\n"
-            )
-            time.sleep(0.1)
-            caps[camindex] = cv2.VideoCapture(possible_cams[camindex])
+            os.execv(
+                "poetry", ["poetry", "run", "python3"] + sys.argv
+            )  # restart script if error
 
 
-possible_cams = ["http://bob.local:5000/", "http://bottomcam.local:5000/"]
-cams = ["maincam", "bottomcam"]
+possible_cams = [0]  # ["http://bob.local:5000/"]
+cams = ["maincam"]
 caps = [cv2.VideoCapture(cam) for cam in possible_cams]
 
 
@@ -48,6 +44,12 @@ def streamcam(cam):
         )
     except ValueError:
         return "Invalid cam"
+
+
+@app.route("/restart")
+def restarter():
+    os.kill(os.getpid(), 9)
+    # os.execv("poetry", ["poetry", "run", "python3"] + sys.argv)
 
 
 @app.route("/")

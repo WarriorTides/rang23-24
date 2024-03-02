@@ -15,6 +15,7 @@ Servo t8;
 Servo s1;
 Servo s2;
 Servo s3;
+String data = "";
 
 void setup()
 {
@@ -55,12 +56,12 @@ void loop()
             int len = udp.read(msg, size + 1);
             msg[len] = 0;
 
-            Serial.print(("received: "));
+            // Serial.print(("received: "));
             Serial.println(msg);
             char command = msg[0];
-            String data = String(msg).substring(2);
-            Serial.print("Command: ");
-            Serial.println(command);
+            data = String(msg).substring(2);
+            // Serial.print("Command: ");
+            // Serial.println(command);
 
             if (command == 'c')
             {
@@ -108,35 +109,35 @@ void loop()
         do
         {
 
-            Serial.print(("remote ip: "));
+            // Serial.print(("remote ip: "));
 
-            Serial.println(udp.remoteIP());
+            // Serial.println(udp.remoteIP());
 
-            Serial.print(("remote port: "));
-            Serial.println(udp.remotePort());
+            // Serial.print(("remote port: "));
+            // Serial.println(udp.remotePort());
 
             // send new packet back to ip/port of client. This also
             // configures the current connection to ignore packets from
             // other clients!
             success = udp.beginPacket(udp.remoteIP(), udp.remotePort());
 
-            Serial.print(("beginPacket: "));
-            Serial.println(success ? "success" : "failed");
+            // Serial.print(("beginPacket: "));
+            // Serial.println(success ? "success" : "failed");
 
             // beginPacket fails if remote ethaddr is unknown. In this case an
             // arp-request is send out first and beginPacket succeeds as soon
             // the arp-response is received.
         } while (!success);
 
-        success = udp.println(F("hello world from arduino"));
+        success = udp.println(data);
 
-        Serial.print(("bytes written: "));
-        Serial.println(success);
+        // Serial.print(("bytes written: "));
+        // Serial.println(success);
 
         success = udp.endPacket();
 
-        Serial.print(("endPacket: "));
-        Serial.println(success ? "success" : "failed");
+        // Serial.print(("endPacket: "));
+        // Serial.println(success ? "success" : "failed");
 
         // udp.stop();
         // // restart with new connection to receive packets from other clients

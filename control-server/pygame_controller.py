@@ -3,6 +3,7 @@ import sys
 from flask import Flask
 import pygame
 from pygame.locals import *
+import subprocess
 
 
 import os
@@ -23,15 +24,25 @@ def disconnect():
 
 
 SEND_UDP = True
-MAX_TROTTLE = 0.7
+MAX_TROTTLE = 0.5
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
 
 
-device_ip = "192.168.1.131"
+# GETIP and set it to device_ip
+command = "ifconfig | grep 192 |awk '/inet/ {print $2; exit}' "
+result = subprocess.run(
+    command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+)
+device_ip = ""
+if result.returncode == 0:
+    device_ip = result.stdout.strip()
+else:
+    print(f"Command failed with error: {result.stderr}")
 
+# env vars to make joystik work in background
 os.environ["SDL_VIDEO_ALLOW_SCREENSAVER"] = "1"
 os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
 os.environ["SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
@@ -64,7 +75,7 @@ def formatMessage(message):
 class mainProgram(object):
     def init(self):
         pygame.init()
-        self.runJoy = False
+        self.runJoy = True
 
         self.curMessage = ""
         pygame.joystick.init()
@@ -90,9 +101,7 @@ class mainProgram(object):
         print("Running")
         pygameRunning = True
         while pygameRunning:
-            for event in [
-                pygame.event.wait(),
-            ] + pygame.event.get():
+            for event in [pygame.event.wait()] + pygame.event.get():
                 if event.type == QUIT:
                     pygameRunning = False
                 elif event.type == JOYAXISMOTION:
@@ -113,9 +122,6 @@ class mainProgram(object):
                     if event.message == "RUN":
                         self.runJoy = True
 
-                    # socketconfig.sendMsg("RECIVED MESSAGE FROM SOCKET", broadcast=True)
-                # Get rid of deadzones
-
             for i in range(len(self.axes)):
                 if abs(self.axes[i]) < CTRL_DEADZONES[i]:
                     self.axes[i] = 0.0
@@ -135,44 +141,55 @@ class mainProgram(object):
 
     """
     Thruster Mapping:
-    1: IFR purpole
-    2: OFL grey
-    3: IFL blue
-    4: OBL orange
-    5: OFR light blue
-    6: IBR red
-    7: IBL yellow
-    8: OBR pink
-    
-    
+    1: IFL (blue)
+    2: OFL (gray)
+    3: IBL (yellow)
+    4: OBL (orange)
+    5: OFR (cyan)
+    6: IBR (red)
+    7: IFR (purple)
+    8: OBR (pink)
+
     """
 
     def control(self):
         # print("Control")
-        surge = self.axes[1]
-        sway = -self.axes[0]
+
+        sway = -self.axes[2]
+
         heave = self.axes[3]
-        yaw = -self.axes[2]
+        if self.buttons[0] == 0:
+
+            surge = self.axes[1]
+            yaw = -self.axes[0]
+            roll = 0
+            pitch = 0
+        else:
+            surge = 0
+            yaw = 0
+            roll = -self.axes[0]
+            pitch = self.axes[1]
         controlData = {
             "surge": surge,
             "sway": sway,
             "heave": heave,
             "yaw": yaw,
+            "roll": roll,
+            "pitch": pitch,
             "axes": self.axes,
             "buttons": self.buttons,
         }
-        sio.emit("joystick", str(controlData))
         # print(con)
 
         # forward,right,up are positive
         combined = [
-            -(heave),  # IFR purpole
+            heave - roll + pitch,  # IFL blue
             surge + yaw + sway,  # OFL grey
-            heave,  # IFL blue
-            -(surge + yaw - sway),  # OBL orange
+            heave - roll - pitch,  # IBL yellow
+            (surge + yaw - sway),  # OBL orange
             surge - yaw - sway,  # OFR light blue
-            heave,  # IBR red
-            heave,  # IBL yellow
+            heave + roll - pitch,  # IBR red
+            (heave) + roll + pitch,  # IFR purpole
             surge - yaw + sway,  # OBR pink
         ]
 
@@ -187,6 +204,8 @@ class mainProgram(object):
                 1500 + (MAX_TROTTLE * 400),
             )
         # print("Combined: " + str(formatMessage(combined)))
+        if not SEND_UDP:
+            sio.emit("joystick", str(controlData))
         self.curMessage = formatMessage(combined)
         self.sendUDP()
 
@@ -197,8 +216,15 @@ class mainProgram(object):
             sock.sendto(self.curMessage.encode(), ARDUINO_DEVICE)
             print(f"Sent: {self.curMessage}")
             print("Waiting for response...")
-            data, server = sock.recvfrom(8888)
-            print(f"Received: {data.decode()}")
+            sock.settimeout(1.0)  # Set the timeout to  1 second
+            try:
+                data, server = sock.recvfrom(8888)
+                sio.emit("joystick", str(data.decode()))
+                print(f"Received: {data.decode()}")
+            except socket.timeout:
+                print("No response received within  1 second.")
+        # else:
+        #     sio.emit("joystick", self.curMessage)
 
     def quit(self, status=0):
         pygame.quit()

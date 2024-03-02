@@ -9,7 +9,7 @@ arduino_port = 8888
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Bind the socket to a specific network interface and port number
-sock.bind(("192.168.1.131", arduino_port))
+sock.bind(("192.168.1.204", arduino_port))
 
 # The message to send
 
