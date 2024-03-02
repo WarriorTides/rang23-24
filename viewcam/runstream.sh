@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#kill what is using my port
+
+kill -9 $(lsof -ti:1234)
+
 # Define a function to be called when SIGINT is received
 function handle_sigint() {
     echo "Ctrl+C pressed, exiting gracefully..."

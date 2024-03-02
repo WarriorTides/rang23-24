@@ -23,7 +23,7 @@ def disconnect():
     print("I'm disconnected!")
 
 
-SEND_UDP = True
+SEND_UDP = False
 MAX_TROTTLE = 0.5
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
