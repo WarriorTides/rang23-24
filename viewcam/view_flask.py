@@ -22,12 +22,11 @@ def gen_frames(cap, camindex):
                     b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n"
                 )
         except ValueError as e:
-            os.execv(
-                "poetry", ["poetry", "run", "python3"] + sys.argv
-            )  # restart script if error
+            print("error")
+            # break
 
 
-possible_cams = [0]  # ["http://bob.local:5000/"]
+possible_cams = ["http://bob.local:5000/"]
 cams = ["maincam"]
 caps = [cv2.VideoCapture(cam) for cam in possible_cams]
 

@@ -27,7 +27,7 @@ def sendMsg(msg):
 
 @socketio.on("message")
 def handle_message(data):
-    print("received message: " + str(data))
+    # print("received message: " + str(data))
     #
     # sendMsg(str(data))
     pygame.event.post(pygame.event.Event(pygame_controller.SOCKETEVENT, message=data))

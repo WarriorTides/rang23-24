@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 from flask import Flask
 import pygame
 from pygame.locals import *
@@ -23,8 +24,9 @@ def disconnect():
     print("I'm disconnected!")
 
 
-SEND_UDP = False
-MAX_TROTTLE = 0.5
+SEND_UDP = True
+MAX_TROTTLE = 0.7
+CONNECT_JOYSTICK = False
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
@@ -66,21 +68,27 @@ def mapnum(
 
 def formatMessage(message):
     # convert message array to comma sepearted string
+
     output = "c"
     for i in range(len(message)):
         output += "," + str(message[i])
-    return output + ",180,90,90"
+
+    return output
 
 
 class mainProgram(object):
     def init(self):
         pygame.init()
         self.runJoy = True
-
+        self.maxTrottle = MAX_TROTTLE
         self.curMessage = ""
-        pygame.joystick.init()
+        self.wrist = 0  # 0 is flat 1 is vertical
+
         self.lastaxes = []
         self.lastbuttons = []
+
+        pygame.joystick.init()
+
         self.joycount = pygame.joystick.get_count()
         if self.joycount == 0:
             print(
@@ -94,6 +102,8 @@ class mainProgram(object):
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
+        sio.emit("joystick", "Power:" + str(MAX_TROTTLE))
+        sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
 
         # Find out the best window size
 
@@ -115,6 +125,11 @@ class mainProgram(object):
                     print("Socket event: " + str(event.message))
                     if event.message == "STATUS":
                         sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
+                        time.sleep(0.1)
+                        sio.emit("joystick", "Power:" + str(self.maxTrottle))
+
+                    # if "Power:" in event.message:
+                    #     self.maxTrottle = float(event.message.split(":")[1])
                     if "c" in event.message:
                         self.runJoy = False
                         self.curMessage = event.message
@@ -184,13 +199,13 @@ class mainProgram(object):
         # forward,right,up are positive
         combined = [
             heave - roll + pitch,  # IFL blue
+            surge - yaw - sway,  # OFR light blue
             surge + yaw + sway,  # OFL grey
             heave - roll - pitch,  # IBL yellow
-            (surge + yaw - sway),  # OBL orange
-            surge - yaw - sway,  # OFR light blue
             heave + roll - pitch,  # IBR red
             (heave) + roll + pitch,  # IFR purpole
             surge - yaw + sway,  # OBR pink
+            (surge + yaw - sway),  # OBL orange
         ]
 
         max_motor = max(abs(x) for x in combined)
@@ -203,10 +218,27 @@ class mainProgram(object):
                 1500 - (MAX_TROTTLE * 400),
                 1500 + (MAX_TROTTLE * 400),
             )
-        # print("Combined: " + str(formatMessage(combined)))
+            # print("Combined: " + str(formatMessage(combined)))
+            print("controlData: " + str(controlData))
+        # wrist: button[1]  claw: axes[-1]
+        if self.buttons[1] == 1:
+            self.wrist += 1
+            if self.wrist > 1:
+                self.wrist = 0
+
         if not SEND_UDP:
             sio.emit("joystick", str(controlData))
-        self.curMessage = formatMessage(combined)
+        # prin()
+        self.curMessage = formatMessage(combined) + ",180"
+        if self.wrist == 1:
+            self.curMessage += ",67"
+        else:
+            self.curMessage += ",149"
+        if self.axes[-1] == 1:
+            self.curMessage += ",130"
+        else:
+            self.curMessage += ",15"
+
         self.sendUDP()
 
     # angularx = self.axes[4]

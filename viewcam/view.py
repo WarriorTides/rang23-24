@@ -1,9 +1,9 @@
 # Desc: View the camera feed thorugh OpenCV
 import cv2
 
+print("imported cv2")
 
 cap = cv2.VideoCapture("http://bob.local:5000/")
-
 
 while cap.isOpened():
     ret, frame = cap.read()
