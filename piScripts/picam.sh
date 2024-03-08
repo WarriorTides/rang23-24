@@ -10,6 +10,13 @@ fi
 raspi-config nonint do_legacy 0
 
 # Start up camera streamer
+function handle_sigint() {
+    echo "Ctrl+C pressed, exiting gracefully..."
+    exit 0
+}
+
+# Use trap to catch SIGINT and call handle_sigint when it's received
+trap handle_sigint SIGINT
 
 
 export ROTATION=180
