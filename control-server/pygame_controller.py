@@ -25,7 +25,8 @@ def disconnect():
 
 
 SEND_UDP = True
-MAX_TROTTLE = 0.7
+MAX_TROTTLE = 0.5
+RUN_THRUSTER = False
 CONNECT_JOYSTICK = False
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
@@ -69,7 +70,11 @@ def mapnum(
 def formatMessage(message):
     # convert message array to comma sepearted string
 
-    output = "c"
+    output = ""
+    if not RUN_THRUSTER:
+        output += "t"
+    else:
+        output += "c"
     for i in range(len(message)):
         output += "," + str(message[i])
 
@@ -219,7 +224,7 @@ class mainProgram(object):
                 1500 + (MAX_TROTTLE * 400),
             )
             # print("Combined: " + str(formatMessage(combined)))
-            print("controlData: " + str(controlData))
+            # print("controlData: " + str(controlData))
         # wrist: button[1]  claw: axes[-1]
         if self.buttons[1] == 1:
             self.wrist += 1
