@@ -9,6 +9,7 @@
 uint8_t broadcastAddress[] = {0xF4, 0xCF, 0xA2, 0xDF, 0x88, 0x65};//breadboard
 // uint8_t broadcastAddress[] = {0x50, 0x02, 0x91, 0x7B, 0x86, 0x6B};//loose
 
+String input ="";
 
 // Updates DHT readings every 10 seconds
 const long interval = 10000; 
@@ -92,21 +93,32 @@ void setup() {
   
   // Register for a callback function that will be called when data is received
   esp_now_register_recv_cb(OnDataRecv);
+  Serial.println("ME GOT SETUP");
 }
  
 void loop() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) {
-    // save the last time you updated the DHT values
-    previousMillis = currentMillis;
-
-    ControlData.c='d';
-    ControlData.val=10;
+  
+   if (Serial.available() > 0) {
+      input = Serial.readStringUntil('\n');
+      int  index = input.indexOf('/');
+      ControlData.c=input.substring(0, index).charAt(0);
+    ControlData.val=(input.substring(index+1)).toInt();
+    Serial.print(ControlData.c);
+    Serial.print(ControlData.val);
     // Send message via ESP-NOW
     esp_now_send(broadcastAddress, (uint8_t *) &ControlData, sizeof(ControlData));
 
 
-  }
+    }
+  // unsigned long currentMillis = millis();
+  // if (currentMillis - previousMillis >= interval) {
+  //   // save the last time you updated the DHT values
+  //   previousMillis = currentMillis;
+
+  
+
+
+  // }
 }
 
 void printIntArray(int arr[]) {
