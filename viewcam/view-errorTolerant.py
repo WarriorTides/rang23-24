@@ -1,10 +1,15 @@
 # Desc: View the camera feed thorugh OpenCV
 import time
 import cv2
+import sys
 
 print("imported cv2")
 
-camera = 0
+camera = "http://bob.local:5000/"
+# for arg in sys.argv:
+
+#     if arg == "-b":
+#         path = "http://bobalina.local:5000/"
 
 
 def open_camera(decice_name):

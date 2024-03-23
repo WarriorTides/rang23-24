@@ -14,6 +14,11 @@ def capture_feed(camera_index):
     cap = cv2.VideoCapture(camera_index)
     while True:
         ret, frame = cap.read()
+        # if frame is None:
+        #     print("Failed to read frame")
+        #     cap.release()
+        #     cap = cv2.VideoCapture(camera_index)
+        #     continue
         if not ret:
             break
         yield cv2.imencode(".jpg", frame)[1].tobytes()

@@ -26,13 +26,23 @@ def disconnect():
 
 SEND_UDP = True
 MAX_TROTTLE = 0.5
-RUN_THRUSTER = False
-CONNECT_JOYSTICK = False
+RUN_THRUSTER = True
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
-
+mapping = [
+    {"name": "OFL", "color": "gray", "index": 1, "posIndex": 0, "rightpad": 2},
+    {"name": "OFR", "color": "cyan", "index": 4, "posIndex": 1, "rightpad": 1},
+    {"name": "IFL", "color": "blue", "index": 0, "posIndex": 2, "rightpad": 0},
+    {"name": "IFR", "color": "purple", "index": 2, "posIndex": 3, "rightpad": 2},
+    {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
+    {"name": "IBR", "color": "red", "index": 5, "posIndex": 5, "rightpad": 1},
+    {"name": "OBL", "color": "orange", "index": 7, "posIndex": 6, "rightpad": 2},
+    {"name": "OBR", "color": "pink", "index": 6, "posIndex": 7, "rightpad": 0},
+]
+mapping_dict = {item["name"]: item["index"] for item in mapping}
+print(mapping_dict)
 
 # GETIP and set it to device_ip
 command = "ifconfig | grep 192 |awk '/inet/ {print $2; exit}' "
@@ -200,21 +210,32 @@ class mainProgram(object):
             "buttons": self.buttons,
         }
         # print(con)
+        combinedthrust = {
+            "IFL": heave - roll + pitch,
+            "OFR": surge - yaw - sway,
+            "OFL": surge + yaw + sway,
+            "IBL": heave - roll - pitch,
+            "IBR": heave + roll - pitch,
+            "IFR": heave + roll + pitch,
+            "OBR": surge - yaw + sway,
+            "OBL": surge + yaw - sway,
+        }
+        combined = [0] * 8
+        for key, value in combinedthrust.items():
+            combined[mapping_dict[key]] = value
+
+        # Step 3: Extract the values from the sorted items to create the final array
+        # final_array = list(sorted_combinedthrust)
+
+        # print(final_array)
 
         # forward,right,up are positive
-        combined = [
-            heave - roll + pitch,  # IFL blue
-            surge - yaw - sway,  # OFR light blue
-            surge + yaw + sway,  # OFL grey
-            heave - roll - pitch,  # IBL yellow
-            heave + roll - pitch,  # IBR red
-            (heave) + roll + pitch,  # IFR purpole
-            surge - yaw + sway,  # OBR pink
-            (surge + yaw - sway),  # OBL orange
-        ]
+        # cr
 
         max_motor = max(abs(x) for x in combined)
-        max_input = max(abs(surge), abs(sway), abs(heave), abs(yaw))
+        max_input = max(
+            abs(surge), abs(sway), abs(heave), abs(yaw), abs(pitch), abs(roll)
+        )
         if max_motor == 0:
             max_motor = 1
         for i, t in enumerate(combined):
@@ -224,7 +245,7 @@ class mainProgram(object):
                 1500 + (MAX_TROTTLE * 400),
             )
             # print("Combined: " + str(formatMessage(combined)))
-            # print("controlData: " + str(controlData))
+        #  print("controlData: " + str(combinedthrust))
         # wrist: button[1]  claw: axes[-1]
         if self.buttons[1] == 1:
             self.wrist += 1
@@ -238,11 +259,11 @@ class mainProgram(object):
         if self.wrist == 1:
             self.curMessage += ",67"
         else:
-            self.curMessage += ",149"
+            self.curMessage += ",159"
         if self.axes[-1] == 1:
             self.curMessage += ",130"
         else:
-            self.curMessage += ",15"
+            self.curMessage += ",16"
 
         self.sendUDP()
 

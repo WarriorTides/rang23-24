@@ -20,7 +20,18 @@ rpi-update -y
 # Needed for the raspivid function to stream the camera
 dpkg -l | grep ncat || apt install ncat -y
 dpkg -l | grep nmap || apt install nmap -y
-dpkg -l | grep usbip || apt install usbip -y
+
+for arg in "$@"
+do
+ if [ "$arg" == "-u" ]; then
+    dpkg -l | grep usbip || apt install usbip -y
+    sudo modprobe usbip_host
+
+    echo -e "usbip_host" >> /etc/modules
+
+    # Place your code here that should run when -u is present
+ fi
+done
 
 # Make stream.sh launch on startup
 # crontab -l > crontab_new
@@ -38,16 +49,15 @@ echo "gpu_mem=256" >> /boot/config.txt
 # turn off the red light. if you leave it on, it reflects off the glass
 echo "disable_camera_led=1" >> /boot/config.txt
 
-sudo modprobe usbip_host
-
-echo -e "usbip_host" >> /etc/modules
 
 crontab -l > mycron
 #echo new cron into cron file
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
 
 echo "@reboot bash $(SCRIPT_DIR)/picam.sh" >> mycron
-echo "@reboot bash $(SCRIPT_DIR)/usbip.sh" >> mycron
+
+#echo "@reboot bash $(SCRIPT_DIR)/usbip.sh" >> mycron
 
 crontab mycron
 rm mycron

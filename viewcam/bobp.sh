@@ -15,9 +15,7 @@ trap handle_sigint SIGINT
 
 # Start the infinite loop
 while true; do
-echo "Starting the stream..."
-   poetry run python3 view-errorTolerant.py
-    # sleep 5
+   ping bob.local
 done
 
 
