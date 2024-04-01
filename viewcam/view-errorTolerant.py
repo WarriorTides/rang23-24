@@ -6,10 +6,10 @@ import sys
 print("imported cv2")
 
 camera = "http://bob.local:5000/"
-# for arg in sys.argv:
+for arg in sys.argv:
 
-#     if arg == "-b":
-#         path = "http://bobalina.local:5000/"
+    if arg == "-b":
+        camera = "http://bobalina.local:5000/"
 
 
 def open_camera(decice_name):

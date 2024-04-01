@@ -3,6 +3,7 @@
 #include <UIPEthernet.h>
 #include "utility/logging.h"
 #include <Servo.h>
+
 EthernetUDP udp;
 Servo t1;
 Servo t2;
@@ -17,7 +18,8 @@ Servo s2;
 Servo s3;
 String sendData = "";
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
   t1.attach(6);
   t2.attach(8);
@@ -42,8 +44,7 @@ void setup() {
   s2.write(159);
   s3.write(17);
 
-    uint8_t mac[6] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05 };
-
+  uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
   Ethernet.begin(mac, IPAddress(192, 168, 1, 151));
 
   int success = udp.begin(8888);
@@ -53,12 +54,15 @@ void setup() {
   Serial.println(Ethernet.localIP());
 }
 
-void loop() {
+void loop()
+{
 
   // check for new udp-packet:
   int size = udp.parsePacket();
-  if (size > 0) {
-    do {
+  if (size > 0)
+  {
+    do
+    {
       char *msg = (char *)malloc(size + 1);
       int len = udp.read(msg, size + 1);
       msg[len] = 0;
@@ -71,18 +75,23 @@ void loop() {
       // Serial.print("Command: ");
       // Serial.println(command);
 
-      if (command == 'c') {
+      if (command == 'c')
+      {
         // Convert String into an Int Array that contains microseconds for all 8 thrusters and Servo Angles
         int output[11];
         boolean done = false;
         int i = 0;
-        while (!done) {
+        while (!done)
+        {
           int index = data.indexOf(',');
-          if (index == -1) {
+          if (index == -1)
+          {
             done = true;
             output[i] = data.toInt();
             // Serial.println(output[i]);
-          } else {
+          }
+          else
+          {
             output[i] = data.substring(0, index).toInt();
             // Serial.println(outputx[i]);
             data = data.substring(index + 1);
@@ -109,7 +118,8 @@ void loop() {
     udp.flush();
 
     int success;
-    do {
+    do
+    {
 
       // Serial.print(("remote ip: "));
 

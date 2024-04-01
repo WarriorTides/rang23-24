@@ -25,6 +25,7 @@ def disconnect():
 
 
 SEND_UDP = True
+ROV_MAX_AMPS = 20
 MAX_TROTTLE = 0.5
 RUN_THRUSTER = True
 arduino_ip = "192.168.1.151"
@@ -35,11 +36,11 @@ mapping = [
     {"name": "OFL", "color": "gray", "index": 1, "posIndex": 0, "rightpad": 2},
     {"name": "OFR", "color": "cyan", "index": 4, "posIndex": 1, "rightpad": 1},
     {"name": "IFL", "color": "blue", "index": 0, "posIndex": 2, "rightpad": 0},
-    {"name": "IFR", "color": "purple", "index": 2, "posIndex": 3, "rightpad": 2},
-    {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
-    {"name": "IBR", "color": "red", "index": 5, "posIndex": 5, "rightpad": 1},
-    {"name": "OBL", "color": "orange", "index": 7, "posIndex": 6, "rightpad": 2},
-    {"name": "OBR", "color": "pink", "index": 6, "posIndex": 7, "rightpad": 0},
+    {"name": "IFR", "color": "purple", "index": 5, "posIndex": 3, "rightpad": 2},
+    {"name": "IBL", "color": "yellow", "index": 2, "posIndex": 4, "rightpad": 0},
+    {"name": "IBR", "color": "red", "index": 6, "posIndex": 5, "rightpad": 1},
+    {"name": "OBL", "color": "orange", "index": 3, "posIndex": 6, "rightpad": 2},
+    {"name": "OBR", "color": "pink", "index": 7, "posIndex": 7, "rightpad": 0},
 ]
 mapping_dict = {item["name"]: item["index"] for item in mapping}
 print(mapping_dict)
@@ -257,7 +258,7 @@ class mainProgram(object):
         # prin()
         self.curMessage = formatMessage(combined) + ",180"
         if self.wrist == 1:
-            self.curMessage += ",67"
+            self.curMessage += ",79"
         else:
             self.curMessage += ",159"
         if self.axes[-1] == 1:
