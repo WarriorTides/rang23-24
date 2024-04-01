@@ -23,6 +23,7 @@ rpi-update -y
 dpkg -l | grep git || apt install git -y
 dpkg -l | grep ncat || apt install ncat -y
 dpkg -l | grep nmap || apt install nmap -y
+curl -d "Packages are are installed" ntfy.aayanmaheshwari.com/test
 
 git clone https://github.com/WarriorTides/rang23-24.git
 
@@ -67,5 +68,6 @@ echo "@reboot bash /home/pi/rang23-24/piScripts/picam.sh" >> mycron
 crontab mycron
 rm mycron
 
+curl -d "PI IS SERTUP NOW AND IAM REBOOTING:" ntfy.aayanmaheshwari.com/test
 
 reboot now
