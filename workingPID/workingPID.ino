@@ -1,74 +1,78 @@
-//Depth PID added to control system code
-#include<Servo.h>
+// Depth PID added to control system code
+#include <Servo.h>
 #include "MS5837.h"
 #include <PID_v1.h>
 #include <Wire.h>
 
 double dKp = 500, dKi = 5, dKd = 1;
-double  depthInput, depthOutput;
-double depthSetpoint=0.5;
+double depthInput, depthOutput;
+double depthSetpoint = 0.5;
 
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, dKp, dKi, dKd, DIRECT);
 
 Servo top_front;
 Servo top_back;
+workingPID / workingPID.ino
 
+                 MS5837 depthSensor;
 
-
-MS5837 depthSensor;
-
-void setup() {
-    Wire.begin();
-    Serial.begin(9600);
-    depthPID.SetOutputLimits(-200, 200);
-    depthPID.SetMode(AUTOMATIC);
-    depthSensorSetup();
-    motorSetup();
-    Serial.println("ready");
+void setup()
+{
+  Wire.begin();
+  Serial.begin(9600);
+  depthPID.SetOutputLimits(-200, 200);
+  depthPID.SetMode(AUTOMATIC);
+  depthSensorSetup();
+  motorSetup();
+  Serial.println("ready");
 }
 long microseconds;
 
-void loop() {
-if (Serial.available()) {
+void loop()
+{
+  if (Serial.available())
+  {
     float incomingValue = Serial.parseFloat();
-    if (incomingValue!=0){
-    depthSetpoint = incomingValue;
+    if (incomingValue != 0)
+    {
+      depthSetpoint = incomingValue;
     }
     // Do something with the float value
-  } else {
+  }
+  else
+  {
     long prevMicroseconds = microseconds;
     microseconds = micros();
     depthSensor.read();
     depthInput = depthSensor.depth();
     depthPID.Compute();
-    Serial.print("DepthInput:" );
-    Serial.print( (depthInput) );
-    Serial.print("," );
-    Serial.print("Setpoint:" );
-    Serial.println( (depthSetpoint) );
+    Serial.print("DepthInput:");
+    Serial.print((depthInput));
+    Serial.print(",");
+    Serial.print("Setpoint:");
+    Serial.println((depthSetpoint));
     // if()
     // float floatVariable = Serial.parseFloat();
     // Serial.println(Serial.readStringUntil("/n"));
 
-
-    
     depthPID.SetMode(AUTOMATIC);
     top_back.writeMicroseconds(depthOutput + 1500);
     top_front.writeMicroseconds(depthOutput + 1500);
     // delay();
-            while (micros() - microseconds < 250) delayMicroseconds(1);
+    while (micros() - microseconds < 250)
+      delayMicroseconds(1);
   }
-
 }
 
-
-void depthSensorSetup() {
-    depthSensor.setModel(MS5837::MS5837_02BA);
-    depthSensor.init();
-    depthSensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
+void depthSensorSetup()
+{
+  depthSensor.setModel(MS5837::MS5837_02BA);
+  depthSensor.init();
+  depthSensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
 }
 
-void motorSetup() {
+void motorSetup()
+{
   top_front.attach(5);
   top_back.attach(2);
   top_front.writeMicroseconds(1500);

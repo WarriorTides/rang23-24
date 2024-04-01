@@ -5,7 +5,7 @@ from flask import Flask
 import pygame
 from pygame.locals import *
 import subprocess
-
+import power_comp
 
 import os
 import socketio
@@ -189,6 +189,7 @@ class mainProgram(object):
         sway = -self.axes[2]
 
         heave = self.axes[3]
+        # circle button for pich and roll
         if self.buttons[0] == 0:
 
             surge = self.axes[1]
@@ -242,11 +243,12 @@ class mainProgram(object):
         for i, t in enumerate(combined):
             combined[i] = mapnum(
                 (t / max_motor * max_input),
-                1500 - (MAX_TROTTLE * 400),
-                1500 + (MAX_TROTTLE * 400),
+                1500 - (400),#multiply 400 by maxtrhottle if u want that
+                1500 + (400),
             )
-            # print("Combined: " + str(formatMessage(combined)))
-        #  print("controlData: " + str(combinedthrust))
+            
+        combined= power_comp.calcnew(combined,ROV_MAX_AMPS)
+        
         # wrist: button[1]  claw: axes[-1]
         if self.buttons[1] == 1:
             self.wrist += 1
