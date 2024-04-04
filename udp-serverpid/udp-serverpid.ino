@@ -30,7 +30,8 @@ MS5837 depthSensor;
 double depthInput, depthOutput;
 double depthSetpoint = -1;
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, datastore.p, datastore.i, datastore.d, DIRECT);
-
+IPAddress sendIP;
+uint16_t sendPort;
 void setup()
 {
     Wire.begin();
@@ -142,8 +143,14 @@ void loop()
                 datastore.i = data.substring(data.indexOf(',') + 1, data.lastIndexOf(',')).toFloat();
                 datastore.d = data.substring(data.lastIndexOf(',') + 1, data.indexOf('d')).toFloat();
                 depthSetpoint = data.substring(data.indexOf('d') + 1).toFloat();
-                runpid = false;
+                runpid = true;
                 depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
+                Serial.print(datastore.p);
+                Serial.print(",");
+                Serial.print(datastore.p);
+                Serial.print(",");
+                Serial.print(datastore.p);
+                Serial.print(",");
             }
             else if (command == 't')
             {
@@ -172,7 +179,10 @@ void loop()
             // send new packet back to ip/port of client. This also
             // configures the current connection to ignore packets from
             // other clients!
+
             success = udp.beginPacket(udp.remoteIP(), udp.remotePort());
+            sendIP = udp.remoteIP();
+            sendPort = udp.remotePort();
 
             // Serial.print(("beginPacket: "));
             // Serial.println(success ? "success" : "failed");
@@ -201,20 +211,55 @@ void loop()
     if (millis() - previousMillis >= interval)
     {
         previousMillis = millis();
+        // Serial.println(runpid);
         if (runpid)
         {
             Serial.println("Running PID");
             depthSensor.read();
             depthInput = depthSensor.depth();
+            depthPID.Compute();
+
             Serial.print("DepthInput:");
             Serial.print((depthInput));
             Serial.print(",");
-            Serial.println("pwmwriting:" + String(depthOutput + 1500));
-            depthPID.Compute();
-            thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
+            Serial.print("Setpoint:");
+            Serial.print(depthSetpoint);
+            Serial.println(",pwmwriting:" + String(depthOutput + 1500));
+            int success;
+            do
+            {
+
+                // Serial.print(("remote ip: "));
+
+                // Serial.println(udp.remoteIP());
+
+                // Serial.print(("remote port: "));
+                // Serial.println(udp.remotePort());
+
+                // send new packet back to ip/port of client. This also
+                // configures the current connection to ignore packets from
+                // other clients!
+
+                success = udp.beginPacket(sendIP, sendPort);
+
+                // Serial.print(("beginPacket: "));
+                // Serial.println(success ? "success" : "failed");
+
+                // beginPacket fails if remote ethaddr is unknown. In this case an
+                // arp-request is send out first and beginPacket succeeds as soon
+                // the arp-response is received.
+            } while (!success);
+            success = udp.println("pwmwriting:" + String(depthOutput + 1500) + "dd" + String(depthInput));
+
+            // Serial.print(("bytes written: "));
+            // Serial.println(success);
+
+            success = udp.endPacket();
+
+            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
+            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
+            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
+            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
         }
     }
 }
