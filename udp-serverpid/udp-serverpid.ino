@@ -103,7 +103,7 @@ void loop()
             Serial.println(msg);
             char command = msg[0];
             String data = String(msg).substring(2);
-            sendData = String(msg).substring(2) + "dd" + String(depthInput);
+            sendData = String(msg).substring(2) + "dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
             // Serial.print("Command: ");
             // Serial.println(command);
             if (command == 'c')
