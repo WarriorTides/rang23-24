@@ -18,9 +18,16 @@ def calcnew(pwm_arr, maxAMP):
     newarr = []
     for i in pwm_arr:
         ampcount += power_dict[i]
+    print(ampcount)
     if ampcount > maxAMP:
         scaleFactor = maxAMP / ampcount
         newarr = [round(((pwm - 1500) * scaleFactor) + 1500) for pwm in pwm_arr]
+    else:
+        return pwm_arr
+    ampcount = 0
+    for i in newarr:
+        ampcount += power_dict[i]
+    print(ampcount)
     return newarr
 
 

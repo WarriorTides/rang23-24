@@ -1,7 +1,7 @@
 
 #include <UIPEthernet.h>
 #include "utility/logging.h"
-#include "MS5837.h"
+#include "MS5837.h"å
 #include <Wire.h>
 #include <Servo.h>
 #include <PID_v1.h>
@@ -26,12 +26,15 @@ Servo servos[3];
 
 String sendData = "";
 bool runpid = false;
+
+bool minirunpid = false;
 MS5837 depthSensor;
 double depthInput, depthOutput;
 double depthSetpoint = -1;
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, datastore.p, datastore.i, datastore.d, DIRECT);
 IPAddress sendIP;
 uint16_t sendPort;
+int writeDepth;
 void setup()
 {
     Wire.begin();
@@ -43,10 +46,10 @@ void setup()
     datastore.upThrusters[1] = 1;
     datastore.upThrusters[2] = 2;
     datastore.upThrusters[3] = 3;
-    datastore.p = 1.0;
-    datastore.i = 0.1;
-    datastore.d = 0.01;
-    datastore.servoAngles[0] = 180;
+    datastore.p = 550;
+    datastore.i = 5;
+    datastore.d = 1;
+    datastore.servoAngles[0] = 142;
     datastore.servoAngles[1] = 159;
     datastore.servoAngles[2] = 17;
     datastore.initialized = true; // Mark the struct as initialized
@@ -75,8 +78,9 @@ void setup()
     Serial.println(Ethernet.localIP());
     depthPID.SetOutputLimits(-200, 200);
     depthPID.SetMode(AUTOMATIC);
+    depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
 }
-const long interval = 1000;
+const long interval = 100;
 unsigned long previousMillis = 0; //
 
 void loop()
@@ -104,7 +108,6 @@ void loop()
             // Serial.println(command);
             if (command == 'c')
             {
-                runpid = false;
                 // Convert String into an Int Array that contains microseconds for all 8 thrusters and Servo Angles
                 int output[11];
                 boolean done = false;
@@ -127,17 +130,34 @@ void loop()
                     }
                 }
                 // write to thrusters
+
                 for (int i = 0; i < 8; i++)
                 {
                     thrusters[i].writeMicroseconds(output[i]);
                 }
+                minirunpid = false;
+                for (int i = 0; i < 4; i++)
+                {
+                    if (output[datastore.upThrusters[i]] != 1500)
+                    {
+                        depthSetpoint = depthInput;
+
+                        break;
+                    };
+                    if (i == 3)
+                    {
+                        minirunpid = true;
+                        Serial.println("STARTINGMINI PID");
+                    }
+                }
+
                 // write to servos
                 for (int i = 0; i < 3; i++)
                 {
                     servos[i].write(output[i + 8]);
                 }
             }
-            else if (command == 'p')
+            else if (command == 'z')
             {
                 datastore.p = data.substring(0, data.indexOf(',')).toFloat();
                 datastore.i = data.substring(data.indexOf(',') + 1, data.lastIndexOf(',')).toFloat();
@@ -147,10 +167,45 @@ void loop()
                 depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
                 Serial.print(datastore.p);
                 Serial.print(",");
-                Serial.print(datastore.p);
+                Serial.print(datastore.i);
                 Serial.print(",");
-                Serial.print(datastore.p);
+                Serial.print(datastore.d);
                 Serial.print(",");
+            }
+            else if (command == 'p')
+            {
+                datastore.p = data.substring(0, data.indexOf(',')).toFloat();
+                datastore.i = data.substring(data.indexOf(',') + 1, data.lastIndexOf(',')).toFloat();
+                datastore.d = data.substring(data.lastIndexOf(',') + 1).toFloat();
+                depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
+            }
+            else if (command == 'd')
+            {
+                depthSetpoint = data.toFloat();
+            }
+            else if (command == 's')
+            {
+                runpid = false;
+                for (int i = 0; i < 8; i++)
+                {
+                    thrusters[i].attach(thrusterPins[i]);
+                    thrusters[i].writeMicroseconds(1500);
+                }
+                for (int i = 0; i < 3; i++)
+                {
+                    servos[i].attach(servoPins[i]);
+                    servos[i].write(datastore.servoAngles[i]);
+                }
+            }
+            else if (command == 'f')
+            {
+                runpid = false;
+                Serial.println("STOPPING PID");
+            }
+            else if (command == 'n')
+            {
+                runpid = true;
+                Serial.println("STARTING PID");
             }
             else if (command == 't')
             {
@@ -211,55 +266,52 @@ void loop()
     if (millis() - previousMillis >= interval)
     {
         previousMillis = millis();
-        // Serial.println(runpid);
-        if (runpid)
+        if (runpid && minirunpid)
         {
-            Serial.println("Running PID");
             depthSensor.read();
             depthInput = depthSensor.depth();
             depthPID.Compute();
+            writeDepth = int(trunc((depthOutput * -1) + 1500));
 
-            Serial.print("DepthInput:");
-            Serial.print((depthInput));
-            Serial.print(",");
-            Serial.print("Setpoint:");
-            Serial.print(depthSetpoint);
-            Serial.println(",pwmwriting:" + String(depthOutput + 1500));
-            int success;
-            do
-            {
+            Serial.println("Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput));
 
-                // Serial.print(("remote ip: "));
+            // int success;
+            // do
+            // {
 
-                // Serial.println(udp.remoteIP());
+            //     // Serial.print(("remote ip: "));
 
-                // Serial.print(("remote port: "));
-                // Serial.println(udp.remotePort());
+            //     // Serial.println(udp.remoteIP());
 
-                // send new packet back to ip/port of client. This also
-                // configures the current connection to ignore packets from
-                // other clients!
+            //     // Serial.print(("remote port: "));
+            //     // Serial.println(udp.remotePort());
 
-                success = udp.beginPacket(sendIP, sendPort);
+            //     // send new packet back to ip/port of client. This also
+            //     // configures the current connection to ignore packets from
+            //     // other clients!
 
-                // Serial.print(("beginPacket: "));
-                // Serial.println(success ? "success" : "failed");
+            //     success = udp.beginPacket(sendIP, sendPort);
 
-                // beginPacket fails if remote ethaddr is unknown. In this case an
-                // arp-request is send out first and beginPacket succeeds as soon
-                // the arp-response is received.
-            } while (!success);
-            success = udp.println("pwmwriting:" + String(depthOutput + 1500) + "dd" + String(depthInput));
+            //     // Serial.print(("beginPacket: "));
+            //     // Serial.println(success ? "success" : "failed");
 
-            // Serial.print(("bytes written: "));
-            // Serial.println(success);
+            //     // beginPacket fails if remote ethaddr is unknown. In this case an
+            //     // arp-request is send out first and beginPacket succeeds as soon
+            //     // the arp-response is received.
+            // } while (!success);
+            // success = udp.println(sendData);
 
-            success = udp.endPacket();
+            // // Serial.print(("bytes written: "));
+            // // Serial.println(success);
 
-            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
-            // thrusters[datastore.upThrusters[0]].writeMicroseconds(depthOutput + 1500);
+            // success = udp.endPacket();
+
+            thrusters[datastore.upThrusters[0]].writeMicroseconds(writeDepth);
+            thrusters[datastore.upThrusters[1]].writeMicroseconds(writeDepth);
+
+            thrusters[datastore.upThrusters[3]].writeMicroseconds(writeDepth);
+
+            thrusters[datastore.upThrusters[2]].writeMicroseconds(writeDepth);
         }
     }
 }

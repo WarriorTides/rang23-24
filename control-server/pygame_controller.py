@@ -25,8 +25,8 @@ def disconnect():
 
 
 SEND_UDP = True
-ROV_MAX_AMPS = 20
-MAX_TROTTLE = 0.5
+ROV_MAX_AMPS = 25
+MAX_TROTTLE = 1
 RUN_THRUSTER = True
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
@@ -95,6 +95,9 @@ def formatMessage(message):
 class mainProgram(object):
     def init(self):
         pygame.init()
+        self.curcam = 1
+        self.runpid = False
+        self.camval = [120, 142, 180]
         self.runJoy = True
         self.maxTrottle = MAX_TROTTLE
         self.curMessage = ""
@@ -120,6 +123,12 @@ class mainProgram(object):
         self.buttons = [0] * self.buttoncount
         sio.emit("joystick", "Power:" + str(MAX_TROTTLE))
         sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
+        # get all trhustures that have a O in the name and get array of indexes
+        upthrust = [item["index"] for item in mapping if "I" in item["name"]]
+        # set curmessage to t, comma seprated indexes of upthrust
+        self.curMessage = "t," + ",".join(str(x) for x in upthrust)
+        print(self.curMessage)
+        self.sendUDP()
 
         # Find out the best window size
 
@@ -185,11 +194,20 @@ class mainProgram(object):
 
     def control(self):
         # print("Control")
-
+        if self.buttons[2] == 1:
+            self.runpid = not self.runpid
+            if self.runpid:
+                self.curMessage = "n"
+                print("Running PID")
+            else:
+                self.curMessage = "f"
+                print("Stopping PID")
+            self.sendUDP()
         sway = -self.axes[2]
 
         heave = self.axes[3]
-        # circle button for pich and roll
+        # x button for pich and roll
+
         if self.buttons[0] == 0:
 
             surge = self.axes[1]
@@ -243,12 +261,13 @@ class mainProgram(object):
         for i, t in enumerate(combined):
             combined[i] = mapnum(
                 (t / max_motor * max_input),
-                1500 - (400),#multiply 400 by maxtrhottle if u want that
-                1500 + (400),
+                1500
+                - (400 * MAX_TROTTLE),  # multiply 400 by maxtrhottle if u want that
+                1500 + (400 * MAX_TROTTLE),
             )
-            
-        combined= power_comp.calcnew(combined,ROV_MAX_AMPS)
-        
+
+        combined = power_comp.calcnew(combined, ROV_MAX_AMPS)
+
         # wrist: button[1]  claw: axes[-1]
         if self.buttons[1] == 1:
             self.wrist += 1
@@ -258,8 +277,13 @@ class mainProgram(object):
         if not SEND_UDP:
             sio.emit("joystick", str(controlData))
         # prin()
-        self.curMessage = formatMessage(combined) + ",180"
-        if self.wrist == 1:
+        self.curMessage = formatMessage(combined) + ","
+        if self.buttons[3] == 1:
+            self.curcam += 1
+            if self.curcam > 2:
+                self.curcam = 0
+        self.curMessage += str(self.camval[self.curcam])
+        if self.wrist == 1:  # wristh is cicle button
             self.curMessage += ",79"
         else:
             self.curMessage += ",159"

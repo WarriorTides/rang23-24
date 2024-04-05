@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
-//breadbnoard one F4:CF:A2:DF:88:65
-//loose one 50:02:91:7B:86:6B
+//float one F4:CF:A2:DF:88:65
+//loose one E0:98:06:A8:7A:C0
+
 
 void setup(){
   Serial.begin(115200);
