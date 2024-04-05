@@ -81,7 +81,9 @@ void setup()
     depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
 }
 const long interval = 100;
-unsigned long previousMillis = 0; //
+const long interval2 = 5000;
+unsigned long previousMillis = 0;  //
+unsigned long previousMillis2 = 0; //
 
 void loop()
 {
@@ -272,40 +274,42 @@ void loop()
             depthInput = depthSensor.depth();
             depthPID.Compute();
             writeDepth = int(trunc((depthOutput * -1) + 1500));
+            sendData = "Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
+            Serial.println(sendData);
+            if (millis() - previousMillis2 >= interval2)
+            {
+                previousMillis2 = millis();
+                int success;
+                do
+                {
 
-            Serial.println("Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput));
+                    // Serial.print(("remote ip: "));
 
-            // int success;
-            // do
-            // {
+                    // Serial.println(udp.remoteIP());
 
-            //     // Serial.print(("remote ip: "));
+                    // Serial.print(("remote port: "));
+                    // Serial.println(udp.remotePort());
 
-            //     // Serial.println(udp.remoteIP());
+                    // send new packet back to ip/port of client. This also
+                    // configures the current connection to ignore packets from
+                    // other clients!
 
-            //     // Serial.print(("remote port: "));
-            //     // Serial.println(udp.remotePort());
+                    success = udp.beginPacket(sendIP, sendPort);
 
-            //     // send new packet back to ip/port of client. This also
-            //     // configures the current connection to ignore packets from
-            //     // other clients!
+                    // Serial.print(("beginPacket: "));
+                    // Serial.println(success ? "success" : "failed");
 
-            //     success = udp.beginPacket(sendIP, sendPort);
+                    // beginPacket fails if remote ethaddr is unknown. In this case an
+                    // arp-request is send out first and beginPacket succeeds as soon
+                    // the arp-response is received.
+                } while (!success);
+                success = udp.println(sendData);
 
-            //     // Serial.print(("beginPacket: "));
-            //     // Serial.println(success ? "success" : "failed");
+                // Serial.print(("bytes written: "));
+                // Serial.println(success);
 
-            //     // beginPacket fails if remote ethaddr is unknown. In this case an
-            //     // arp-request is send out first and beginPacket succeeds as soon
-            //     // the arp-response is received.
-            // } while (!success);
-            // success = udp.println(sendData);
-
-            // // Serial.print(("bytes written: "));
-            // // Serial.println(success);
-
-            // success = udp.endPacket();
-
+                success = udp.endPacket();
+            }
             thrusters[datastore.upThrusters[0]].writeMicroseconds(writeDepth);
             thrusters[datastore.upThrusters[1]].writeMicroseconds(writeDepth);
 
