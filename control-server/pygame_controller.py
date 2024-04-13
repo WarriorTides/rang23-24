@@ -33,13 +33,13 @@ arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
 mapping = [
-    {"name": "OFL", "color": "gray", "index": 1, "posIndex": 0, "rightpad": 2},
-    {"name": "OFR", "color": "cyan", "index": 4, "posIndex": 1, "rightpad": 1},
-    {"name": "IFL", "color": "blue", "index": 0, "posIndex": 2, "rightpad": 0},
-    {"name": "IFR", "color": "purple", "index": 5, "posIndex": 3, "rightpad": 2},
-    {"name": "IBL", "color": "yellow", "index": 2, "posIndex": 4, "rightpad": 0},
-    {"name": "IBR", "color": "red", "index": 6, "posIndex": 5, "rightpad": 1},
-    {"name": "OBL", "color": "orange", "index": 3, "posIndex": 6, "rightpad": 2},
+    {"name": "OFL", "color": "gray", "index": 2, "posIndex": 0, "rightpad": 2},
+    {"name": "OFR", "color": "cyan", "index": 0, "posIndex": 1, "rightpad": 1},
+    {"name": "IFL", "color": "blue", "index": 1, "posIndex": 2, "rightpad": 0},
+    {"name": "IFR", "color": "purple", "index": 6, "posIndex": 3, "rightpad": 2},
+    {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
+    {"name": "IBR", "color": "red", "index": 4, "posIndex": 5, "rightpad": 1},
+    {"name": "OBL", "color": "orange", "index": 5, "posIndex": 6, "rightpad": 2},
     {"name": "OBR", "color": "pink", "index": 7, "posIndex": 7, "rightpad": 0},
 ]
 mapping_dict = {item["name"]: item["index"] for item in mapping}
@@ -99,7 +99,7 @@ class mainProgram(object):
         self.runpid = False
         self.camval = [120, 142, 180]
         self.runJoy = True
-        self.maxTrottle = MAX_TROTTLE
+        self.maxThrottle = MAX_TROTTLE
         self.curMessage = ""
         self.wrist = 0  # 0 is flat 1 is vertical
 
@@ -121,7 +121,7 @@ class mainProgram(object):
         self.buttoncount = self.joystick.get_numbuttons()
         self.axes = [0.0] * self.axiscount
         self.buttons = [0] * self.buttoncount
-        sio.emit("joystick", "Power:" + str(MAX_TROTTLE))
+        sio.emit("joystick", "Power:" + str(self.maxThrottle))
         sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
         # get all trhustures that have a O in the name and get array of indexes
         upthrust = [item["index"] for item in mapping if "I" in item["name"]]
@@ -151,12 +151,25 @@ class mainProgram(object):
                     if event.message == "STATUS":
                         sio.emit("joystick", "ControlMode:" + str(not self.runJoy))
                         time.sleep(0.1)
-                        sio.emit("joystick", "Power:" + str(self.maxTrottle))
-
-                    # if "Power:" in event.message:
-                    #     self.maxTrottle = float(event.message.split(":")[1])
+                        sio.emit("joystick", "Power:" + str(self.maxThrottle))
+                    if "PIDOFF" in event.message:
+                        self.runpid = False
+                        self.curMessage = "f"
+                        self.sendUDP()
+                        self.control()
+                    if "PIDON" in event.message:
+                        self.runpid = True
+                        self.curMessage = "n"
+                        self.sendUDP()
+                        self.control()
+                    if "Power:" in event.message:
+                        self.maxThrottle = float(event.message.split(":")[1])
+                        print("Power: " + str(self.maxThrottle))
                     if "c" in event.message:
                         self.runJoy = False
+                        self.curMessage = event.message
+                        self.sendUDP()
+                    if "xy" in event.message:
                         self.curMessage = event.message
                         self.sendUDP()
                     if event.message == "RUN":
@@ -262,8 +275,10 @@ class mainProgram(object):
             combined[i] = mapnum(
                 (t / max_motor * max_input),
                 1500
-                - (400 * MAX_TROTTLE),  # multiply 400 by maxtrhottle if u want that
-                1500 + (400 * MAX_TROTTLE),
+                - (
+                    400 * self.maxThrottle
+                ),  # multiply 400 by maxtrhottle if u want that
+                1500 + (400 * self.maxThrottle),
             )
 
         combined = power_comp.calcnew(combined, ROV_MAX_AMPS)

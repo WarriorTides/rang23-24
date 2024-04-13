@@ -3,6 +3,7 @@ import threading
 
 import pygame
 import pygame_controller
+import getPID
 
 # Setup Flask and SocketIO
 from flask import Flask
@@ -54,5 +55,7 @@ def handle_message():
 if __name__ == "__main__":
     socketio_thread = threading.Thread(target=runSocket)
     socketio_thread.start()
+    pid_thread = threading.Thread(target=getPID.runStuff)
+    pid_thread.start()
     # time.sleep(1)
     pygame_controller.runJoyStick()

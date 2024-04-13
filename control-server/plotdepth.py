@@ -34,6 +34,7 @@ try:
         newmessage = ""
         with open("./send.txt", "r") as f:
             newmessage = f.read().strip()
+        print(f"last message: {lastmessage}")
         if newmessage != lastmessage:
             # print("Sending new message")
             print(newmessage)

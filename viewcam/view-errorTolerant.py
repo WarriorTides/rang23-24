@@ -5,11 +5,11 @@ import sys
 
 print("imported cv2")
 
-camera = "http://bobalina.local:5000/"
+camera = "http://robert.local:5000/"
 for arg in sys.argv:
 
     if arg == "-b":
-        camera = "http://robert.local:5000/"
+        camera = "http://bobalina.local:5000/"
 
 
 def open_camera(decice_name):

@@ -23,6 +23,7 @@ rpi-update -y
 # dpkg -l | grep git || apt install git -y
 dpkg -l | grep ncat || apt install ncat -y
 dpkg -l | grep nmap || apt install nmap -y
+sudo apt-get install lsof -y
 curl -d "Packages are are installed" ntfy.aayanmaheshwari.com/test
 
 
@@ -48,11 +49,11 @@ curl -d "Packages are are installed" ntfy.aayanmaheshwari.com/test
 raspi-config nonint do_legacy 0
 
 # give more memory
-echo -e "$(sed '/gpu_mem/d' /boot/config.txt)" > /boot/config.txt
-echo "gpu_mem=128" >> /boot/config.txt
+sudo echo -e "$(sed '/gpu_mem/d' /boot/config.txt)" > /boot/config.txt
+sudo echo "gpu_mem=128" >> /boot/config.txt
 
 # turn off the red light. if you leave it on, it reflects off the glass
-echo "disable_camera_led=1" >> /boot/config.txt
+sudo echo "disable_camera_led=1" >> /boot/config.txt
 
 
 #crontab -l > mycron
