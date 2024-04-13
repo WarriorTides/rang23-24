@@ -58,7 +58,7 @@ echo "disable_camera_led=1" >> /boot/config.txt
 #crontab -l > mycron
 #echo new cron into cron file
 
-echo "alias camrun=sudo bash /home/pi/rang23-24/piScripts/picam.sh'" >> ~/.bashrc
+echo "alias camrun='sudo bash /home/pi/rang23-24/piScripts/picam.sh'" >> ~/.bashrc
 #echo "@reboot bash /home/pi/rang23-24/piScripts/picam.sh" >> mycron
 
 #echo "@reboot bash $(SCRIPT_DIR)/usbip.sh" >> mycron
