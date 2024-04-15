@@ -14,9 +14,12 @@ for arg in sys.argv:
 
 def open_camera(decice_name):
     cap = cv2.VideoCapture(decice_name)
-    if not cap.isOpened():
-        print(f"Failed to open camera {decice_name}")
-        return None
+    while not cap.isOpened():
+        if not cap.isOpened():
+            print(f"Failed to open camera {decice_name}")
+            time.sleep(0.5)
+            cap = cv2.VideoCapture(decice_name)
+
     print(f"Opened camera {decice_name}")
     getCameraFeed(cap)
 
