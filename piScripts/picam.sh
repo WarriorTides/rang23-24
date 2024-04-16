@@ -7,7 +7,7 @@ if [[ "$(id -u)" != 0 ]]
   exit
 fi
 
-raspi-config nonint do_legacy 0
+# raspi-config nonint do_legacy 0
 
 # Start up camera streamer
 function handle_sigint() {
