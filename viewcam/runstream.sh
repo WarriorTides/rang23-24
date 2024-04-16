@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-HOSTNAME="robert"
+HOSTNAME="bob"
 
 if [ "$1" == "-b" ]; then
     HOSTNAME="bobalina"

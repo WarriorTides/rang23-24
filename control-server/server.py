@@ -40,6 +40,11 @@ def handle_message(data):
     send(str(data), broadcast=True)
 
 
+@socketio.on("camera")
+def handle_message(data):
+    print("received camera IP: " + str(data))
+
+
 @socketio.on("connect")
 def handle_message():
     print("connected")
@@ -54,8 +59,9 @@ def handle_message():
 
 if __name__ == "__main__":
     socketio_thread = threading.Thread(target=runSocket)
+    socketio_thread.setDaemon(True)
     socketio_thread.start()
-    pid_thread = threading.Thread(target=getPID.runStuff)
-    pid_thread.start()
+    # pid_thread = threading.Thread(target=getPID.runStuff)
+    # pid_thread.start()
     # time.sleep(1)
     pygame_controller.runJoyStick()

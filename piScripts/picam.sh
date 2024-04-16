@@ -20,6 +20,8 @@ kilall raspivid
 kilall ncat
 
 trap handle_sigint SIGINT
+#also handle other signals
+trap handle_sigint SIGTERM
 
 
 export ROTATION=180

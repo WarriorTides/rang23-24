@@ -5,7 +5,7 @@ import sys
 
 print("imported cv2")
 
-camera = "http://robert.local:5000/"
+camera = "http://bob.local:5000/"
 for arg in sys.argv:
 
     if arg == "-b":
