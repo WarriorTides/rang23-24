@@ -23,25 +23,13 @@ rpi-update -y
 # dpkg -l | grep git || apt install git -y
 dpkg -l | grep ncat || apt install ncat -y
 dpkg -l | grep nmap || apt install nmap -y
-sudo apt-get install lsof -y
 curl -d "Packages are are installed" ntfy.aayanmaheshwari.com/test
 
 
-# for arg in "$@"
-# do
-#  if [ "$arg" == "-u" ]; then
-#     dpkg -l | grep usbip || apt install usbip -y
-#     sudo modprobe usbip_host
 
-#     echo -e "usbip_host" >> /etc/modules
-
-#     # Place your code here that should run when -u is present
-#  fi
-# done
-
-# Make stream.sh launch on startup
+# # Make stream.sh launch on startup
 # crontab -l > crontab_new
-# echo "@reboot bash /home/pi/rang23-24/camStream/stream.sh" >> crontab_new
+# echo "@reboot bash /home/pi/rang23-24/piScripts/picam.sh" >> crontab_new
 # crontab crontab_new
 # rm crontab_new
 
@@ -66,7 +54,5 @@ echo "alias camrun='sudo bash /home/pi/rang23-24/piScripts/picam.sh'" >> ~/.bash
 
 #crontab mycron
 #rm mycron
-
-curl -d "PI IS SERTUP NOW AND IAM REBOOTING:" ntfy.aayanmaheshwari.com/test
 
 reboot now
