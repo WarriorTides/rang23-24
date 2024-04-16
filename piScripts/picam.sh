@@ -16,8 +16,8 @@ function handle_sigint() {
 }
 
 # Use trap to catch SIGINT and call handle_sigint when it's received
-kilall raspivid
-kilall ncat
+killall raspivid
+killall ncat
 
 trap handle_sigint SIGINT
 #also handle other signals
