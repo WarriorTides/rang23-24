@@ -55,8 +55,13 @@ echo "gpu_mem=128" >> /boot/config.txt
 # curl -d "gpu_mem=128" ntfy.aayanmaheshwari.com/test
 
 # turn off the red light. if you leave it on, it reflects off the glass
-echo "disable_camera_led=1" >> /boot/config.txt
+# echo "disable_camera_led=1" >> /boot/config.txt
 
+
+# increase max framebuffers
+echo -e "$(sed '/max_framebuffers/d' /boot/config.txt)" > /boot/config.txt
+echo "max_framebuffers=4" >> /boot/config.txt
+# echo "camera_auto_detect=1" >> /boot/config.txt
 
 #crontab -l > mycron
 #echo new cron into cron file

@@ -105,7 +105,7 @@ void loop()
             Serial.println(msg);
             char command = msg[0];
             String data = String(msg).substring(2);
-            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) +"dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
+            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
             // Serial.print("Command: ");
             // Serial.println(command);
             if (command == 'c')
@@ -166,6 +166,8 @@ void loop()
                 datastore.d = data.substring(data.lastIndexOf(',') + 1, data.indexOf('d')).toFloat();
                 depthSetpoint = data.substring(data.indexOf('d') + 1).toFloat();
                 runpid = true;
+                depthPID.SetMode(AUTOMATIC);
+
                 depthPID.SetTunings(datastore.p, datastore.i, datastore.d);
                 Serial.print(datastore.p);
                 Serial.print(",");
@@ -188,6 +190,8 @@ void loop()
             else if (command == 's')
             {
                 runpid = false;
+                depthPID.SetMode(MANUAL);
+
                 for (int i = 0; i < 8; i++)
                 {
                     thrusters[i].attach(thrusterPins[i]);
@@ -202,12 +206,15 @@ void loop()
             else if (command == 'f')
             {
                 runpid = false;
+                depthPID.SetMode(MANUAL);
+
                 Serial.println("STOPPING PID");
                 sendData = "PIDOFF" + sendData;
             }
             else if (command == 'n')
             {
                 runpid = true;
+                depthPID.SetMode(AUTOMATIC);
                 Serial.println("STARTING PID");
                 sendData = "PIDON" + sendData;
             }

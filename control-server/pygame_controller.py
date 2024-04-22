@@ -34,13 +34,13 @@ ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
 mapping = [
     {"name": "OFL", "color": "gray", "index": 2, "posIndex": 0, "rightpad": 2},
-    {"name": "OFR", "color": "cyan", "index": 0, "posIndex": 1, "rightpad": 1},
-    {"name": "IFL", "color": "blue", "index": 1, "posIndex": 2, "rightpad": 0},
-    {"name": "IFR", "color": "purple", "index": 6, "posIndex": 3, "rightpad": 2},
+    {"name": "OFR", "color": "cyan", "index": 1, "posIndex": 1, "rightpad": 1},
+    {"name": "IFL", "color": "blue", "index": 0, "posIndex": 2, "rightpad": 0},
+    {"name": "IFR", "color": "purple", "index": 5, "posIndex": 3, "rightpad": 2},
     {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
     {"name": "IBR", "color": "red", "index": 4, "posIndex": 5, "rightpad": 1},
-    {"name": "OBL", "color": "orange", "index": 5, "posIndex": 6, "rightpad": 2},
-    {"name": "OBR", "color": "pink", "index": 7, "posIndex": 7, "rightpad": 0},
+    {"name": "OBL", "color": "orange", "index": 7, "posIndex": 6, "rightpad": 2},
+    {"name": "OBR", "color": "pink", "index": 6, "posIndex": 7, "rightpad": 0},
 ]
 mapping_dict = {item["name"]: item["index"] for item in mapping}
 print(mapping_dict)
@@ -63,7 +63,7 @@ os.environ["SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
 os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
 
 
-CTRL_DEADZONES = [0.07] * 6  # Adjust these to your liking.
+CTRL_DEADZONES = [0.1] * 6  # Adjust these to your liking.
 
 
 def mapnum(
@@ -299,9 +299,9 @@ class mainProgram(object):
                 self.curcam = 0
         self.curMessage += str(self.camval[self.curcam])
         if self.wrist == 1:  # wristh is cicle button
-            self.curMessage += ",79"
+            self.curMessage += ",96"
         else:
-            self.curMessage += ",159"
+            self.curMessage += ",15"
         if self.axes[-1] == 1:
             self.curMessage += ",130"
         else:

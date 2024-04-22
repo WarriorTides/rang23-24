@@ -1,10 +1,10 @@
 #!/bin/bash
 
 
-HOSTNAME="bob"
+HOSTNAME="192.168.1.101"
 
 if [ "$1" == "-b" ]; then
-    HOSTNAME="bobalina"
+    HOSTNAME="192.168.1.102"
     PYTHON_ARG="-b"
 else
     PYTHON_ARG=""
@@ -22,12 +22,12 @@ trap handle_sigint SIGINT
 # Wait for the specified hostname to respond to ping
 while true; do
     while true; do #ping until the hostname responds
-        ping -c 1 $HOSTNAME.local > /dev/null 2>&1
+        ping -c 1 $HOSTNAME > /dev/null 2>&1
         if [ $? -eq 0 ]; then
-            echo "$HOSTNAME.local is reachable, proceeding..."
+            echo "$HOSTNAME is reachable, proceeding..."
             break
         else
-            echo "Waiting for $HOSTNAME.local to respond..."
+            echo "Waiting for $HOSTNAME to respond..."
             sleep 0.1
         fi
     done
@@ -35,7 +35,7 @@ while true; do
     # Run stream via ssh
     echo "ping successful, running stream..."
     
-    # ssh -t pi@$HOSTNAME.local "sudo bash /home/pi/rang23-24/piScripts/picam.sh" & echo "stream started"
+    # ssh -t pi@$HOSTNAME "sudo bash /home/pi/rang23-24/piScripts/picam.sh" & echo "stream started"
     # sleep 2
 
     echo "Starting the stream..."
