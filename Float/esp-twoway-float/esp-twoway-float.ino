@@ -9,12 +9,9 @@
 MS5837 sensor;
 
 // REPLACE WITH THE MAC Address of your receiver 
-//breadbordone=F4:CF:A2:DF:88:65
-//loose one 50:02:91:7B:86:6B
 
-// uint8_t broadcastAddress[] = {0xF4, 0xCF, 0xA2, 0xDF, 0x88, 0x65};//breadboard
-uint8_t broadcastAddress[] = {0x50, 0x02, 0x91, 0x7B, 0x86, 0x6B};//loose
-
+// uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x4F, 0xF1, 0x4A};//flaot
+uint8_t broadcastAddress[] = {0x80, 0x7D, 0x3A, 0x49, 0x34, 0x95};//topside
 
 
 // Digital pin connected to the DHT sensor
