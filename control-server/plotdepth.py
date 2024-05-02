@@ -44,9 +44,11 @@ try:
         # time.sleep(1)
         sock.settimeout(0.1)  # Set the timeout to  1 second
         try:
+            sent = sock.sendto("xy".encode(), (arduino_ip, arduino_port))
+
             data, server = sock.recvfrom(8888)
             print(f"Received: {data.decode()}")
-            depth = float(data.decode().split("dd")[1])
+            depth = float(data.decode().split("dd")[1].split("tt")[0])
 
             # Update the plot
             ax.plot(time.time(), depth, "ro")  # Plot a red dot for each depth value
@@ -56,6 +58,7 @@ try:
             ax.set_ylim(-0.3, 2.5)  # Adjust the y-axis limits as needed
             plt.draw()  # Redraw the plot
             plt.pause(0.01)  # Pause for a short period to allow the plot to update
+            time.sleep(0.1)
         except socket.timeout:
             print(".", end="")
 

@@ -1,4 +1,5 @@
 # Desc: View the camera feed through OpenCV
+import datetime
 import time
 import cv2
 import sys
@@ -18,6 +19,7 @@ frame_counter = 0
 
 def open_camera(device_name):
     cap = cv2.VideoCapture(device_name)
+
     while not cap.isOpened():
         if not cap.isOpened():
             print(f"Failed to open camera {device_name}")
@@ -47,6 +49,7 @@ def getCameraFeed(cap):
 
         # Display text on the screen
         if recording:
+            video_writer.write(frame)
             cv2.putText(
                 frame,
                 "Recording...",
@@ -65,7 +68,14 @@ def getCameraFeed(cap):
             if not recording:
                 # Start recording
                 fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # or use 'XVID'
-                video_writer = cv2.VideoWriter("output.mp4", fourcc, 20.0, (1280, 720))
+                datestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # "/Volumes/file-holder/"
+                video_writer = cv2.VideoWriter(
+                    "/Volumes/file-holder/" + datestring + ".mp4",
+                    fourcc,
+                    20.0,
+                    (1280, 720),
+                )
                 recording = True
                 frame_counter = 0
             else:
@@ -75,9 +85,6 @@ def getCameraFeed(cap):
                 recording = False
 
         # Write frame to video file if recording
-        if recording:
-            video_writer.write(frame)
-            frame_counter += 1
 
         # Break the loop on 'q' key press
         if key == ord("q"):

@@ -43,14 +43,14 @@ void setup()
 
     // Set default values
     datastore.upThrusters[0] = 0;
-    datastore.upThrusters[1] = 1;
-    datastore.upThrusters[2] = 2;
+    datastore.upThrusters[1] = 5;
+    datastore.upThrusters[2] = 4;
     datastore.upThrusters[3] = 3;
     datastore.p = 550;
     datastore.i = 5;
     datastore.d = 1;
     datastore.servoAngles[0] = 142;
-    datastore.servoAngles[1] = 159;
+    datastore.servoAngles[1] = 15;
     datastore.servoAngles[2] = 17;
     datastore.initialized = true; // Mark the struct as initialized
 

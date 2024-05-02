@@ -26,7 +26,7 @@ def disconnect():
 
 SEND_UDP = True
 ROV_MAX_AMPS = 25
-MAX_TROTTLE = 1
+MAX_TROTTLE = 0.5
 RUN_THRUSTER = True
 arduino_ip = "192.168.1.151"
 arduino_port = 8888
@@ -63,7 +63,7 @@ os.environ["SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
 os.environ["SDL_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR"] = "0"
 
 
-CTRL_DEADZONES = [0.1] * 6  # Adjust these to your liking.
+CTRL_DEADZONES = [0.2] * 6  # Adjust these to your liking.
 
 
 def mapnum(
@@ -127,6 +127,10 @@ class mainProgram(object):
         upthrust = [item["index"] for item in mapping if "I" in item["name"]]
         # set curmessage to t, comma seprated indexes of upthrust
         self.curMessage = "t," + ",".join(str(x) for x in upthrust)
+        print(self.curMessage)
+        self.sendUDP()
+
+        self.curMessage = "p,550,9,1"
         print(self.curMessage)
         self.sendUDP()
 
@@ -207,7 +211,7 @@ class mainProgram(object):
 
     def control(self):
         # print("Control")
-        if self.buttons[2] == 1:
+        if self.buttons[2] == 1:  # square button
             self.runpid = not self.runpid
             if self.runpid:
                 self.curMessage = "n"
@@ -216,12 +220,22 @@ class mainProgram(object):
                 self.curMessage = "f"
                 print("Stopping PID")
             self.sendUDP()
-        sway = -self.axes[2]
+        if (
+            self.axes[-2] == 1 and not self.maxThrottle == 0.3
+        ):  # left trigger is index: 5
 
-        heave = self.axes[3]
+            self.maxThrottle = 0.3
+            sio.emit("joystick", "Power:" + str(self.maxThrottle))
+        elif self.axes[-2] == -1 and not self.maxThrottle == 0.50:
+            self.maxThrottle = 0.50
+            sio.emit("joystick", "Power:" + str(self.maxThrottle))
+
+        sway = -self.axes[2]  # right stick left right
+
+        heave = self.axes[3]  # right stick up down
         # x button for pich and roll
 
-        if self.buttons[0] == 0:
+        if self.buttons[0] == 0:  # x button
 
             surge = self.axes[1]
             yaw = -self.axes[0]
@@ -284,7 +298,7 @@ class mainProgram(object):
         combined = power_comp.calcnew(combined, ROV_MAX_AMPS)
 
         # wrist: button[1]  claw: axes[-1]
-        if self.buttons[1] == 1:
+        if self.buttons[1] == 1:  # circle button
             self.wrist += 1
             if self.wrist > 1:
                 self.wrist = 0
@@ -293,11 +307,12 @@ class mainProgram(object):
             sio.emit("joystick", str(controlData))
         # prin()
         self.curMessage = formatMessage(combined) + ","
-        if self.buttons[3] == 1:
+        if self.buttons[3] == 1:  # triangle button
             self.curcam += 1
             if self.curcam > 2:
                 self.curcam = 0
         self.curMessage += str(self.camval[self.curcam])
+
         if self.wrist == 1:  # wristh is cicle button
             self.curMessage += ",96"
         else:

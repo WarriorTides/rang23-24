@@ -59,7 +59,7 @@ def handle_message():
 
 if __name__ == "__main__":
     socketio_thread = threading.Thread(target=runSocket)
-    socketio_thread.setDaemon(True)
+    # socketio_thread.setDaemon(True)
     socketio_thread.start()
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
