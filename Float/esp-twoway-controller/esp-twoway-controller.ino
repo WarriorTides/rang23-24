@@ -3,8 +3,13 @@
 #include <espnow.h>
 
 // REPLACE WITH THE MAC Address of your receiver 
-uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x4F, 0xF1, 0x4A};//flaot
-// uint8_t broadcastAddress[] = {0x80, 0x7D, 0x3A, 0x49, 0x34, 0x95};//topside
+//float one 80:7D:3A:49:34:95
+
+//loose one 8C:AA:B5:4F:F1:4A
+// uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86};//Topside
+uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x16, 0x19, 0xB5};//Float
+
+
 
 String input ="";
 
