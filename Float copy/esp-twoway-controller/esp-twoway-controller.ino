@@ -22,15 +22,14 @@ String success;
 // Must match the receiver structure
 typedef struct control_message
 {
-  char c;
-  int val;
+  char c[2];
+  int val[2];
 } control_message;
 
 typedef struct reciv_message
 {
-  int p[120];
-  int d[120];
-  int t[120];
+  char data[1000];
+
 } reciv_message;
 
 // Create a struct_message called DHTReadings to hold sensor readings
@@ -60,14 +59,8 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
   memcpy(&recivReadings, incomingData, sizeof(recivReadings));
   Serial.print("Bytes received: ");
   Serial.println(len);
-
-  Serial.print("Depth: ");
-  printIntArray(recivReadings.d);
-  Serial.print("   Preassure: ");
-  printIntArray(recivReadings.p);
-
-  Serial.print("   Time: ");
-  printIntArray(recivReadings.t);
+  Serial.print("Data received: ");
+  Serial.println(recivReadings.data);
 }
 
 void setup()
@@ -105,13 +98,18 @@ void loop()
 {
 
   if (Serial.available() > 0)
-  {
+  { // cmd,ms/cmd!ms
     input = Serial.readStringUntil('\n');
-    int index = input.indexOf('/');
-    ControlData.c = input.substring(0, index).charAt(0);
-    ControlData.val = (input.substring(index + 1)).toInt();
-    Serial.print(ControlData.c);
-    Serial.print(ControlData.val);
+    Serial.println(input);
+    int index0 = input.indexOf(',');
+    int index1 = input.indexOf('/');
+    int index2 = input.indexOf('!');
+
+    ControlData.c[0] = input.substring(0, index0).charAt(0);
+    ControlData.val[0] = (input.substring(index0 + 1, index1)).toInt();
+    ControlData.c[1] = input.substring(index1 + 1, index2).charAt(0);
+    ControlData.val[1] = (input.substring(index2 + 1)).toInt();
+
     // Send message via ESP-NOW
     esp_now_send(broadcastAddress, (uint8_t *)&ControlData, sizeof(ControlData));
   }
@@ -125,7 +123,7 @@ void loop()
 
 void printIntArray(int arr[])
 {
-  for (int i = 0; i < 120; i++)
+  for (int i = 0; i < 10; i++)
   {
     Serial.print(arr[i]);
     Serial.print(" "); // Optional: Adds a space between elements for readability

@@ -318,9 +318,9 @@ class mainProgram(object):
         else:
             self.curMessage += ",15"
         if self.axes[-1] == 1:
-            self.curMessage += ",130"
-        else:
             self.curMessage += ",16"
+        else:
+            self.curMessage += ",130"
 
         self.sendUDP()
 

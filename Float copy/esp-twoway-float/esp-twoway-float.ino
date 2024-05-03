@@ -21,13 +21,18 @@ uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
 // Define variables to store DHT readings to be sent
 
 // Define variables to store incoming readings
+char[1000] data;
+data[0] = '\0';
 
 const long interval = 5000;
 unsigned long previousMillis = 0; // will store last time DHT was updated
-long floatDur = 0;
+
+char[2] commands;
+int[2] times;
+int currentCommand = -1;
+
 unsigned long previousMillisFloat = 0; // will store last time DHT was updated
 bool floatIsStopped = true;
-char nextCommand = 's';
 
 int datacount = 0;
 // Variable to store if sending data was successful
@@ -35,15 +40,13 @@ String success;
 
 typedef struct control_message
 {
-  char c;
-  int val;
+  char c[2];
+  int val[2];
 } control_message;
 
 typedef struct send_message
 {
-  int p[120];
-  int d[120];
-  int t[120];
+  char[1000] data;
 } send_message;
 
 // Create a struct_message called DHTReadings to hold sensor readings
@@ -59,6 +62,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
   if (sendStatus == 0)
   {
     Serial.println("Delivery success");
+    data[0] = '\0';
     datacount = 0;
   }
   else
@@ -73,31 +77,41 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
   memcpy(&ControlData, incomingData, sizeof(ControlData));
   Serial.print("Bytes received: ");
   Serial.println(len);
-  Serial.print("COmmand: ");
-  Serial.print(ControlData.c);
-  Serial.print(" Time:");
-  Serial.println(ControlData.val);
-  floatDur = ControlData.val;
+  // Serial.print("COmmand: ");
+  // Serial.print(ControlData.c[0]);
+  // Serial.print(" Time:");
+  // Serial.println(ControlData.val);
+  // floatDur = ControlData.val;
   previousMillisFloat = millis();
-
-  if (ControlData.c == 'f')
+  commands = ControlData.c;
+  times = ControlData.val;
+  currentCommand = 0;
+  move();
+}
+void move()
+{
+  if (currentCommand == -1 || commands[currentCommand] == 'd' || currentCommand >= commands.length())
+  {
+    return;
+  }
+  if (commands[currentCommand] == 'f')
   {
     forward();
-    nextCommand = 'b';
+
+    floatIsStopped = false;
   }
 
-  else if (ControlData.c == 'b')
+  else if (commands[currentCommand] == 'b')
   {
     back();
-    nextCommand = 'f';
+    floatIsStopped = false;
   }
-  else if (ControlData.c == 's')
+  else if (commands[currentCommand] == 's')
   {
     stop();
-    nextCommand = 's';
+    floatIsStopped = true;
   }
 }
-
 void setup()
 {
   // Init Serial Monitor
@@ -154,25 +168,11 @@ void setup()
 void loop()
 {
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisFloat >= floatDur && !floatIsStopped)
+  if (currentMillis - previousMillis >= floatDur && !floatIsStopped)
   {
-    if (nextCommand == 'f')
-    {
-      forward();
-      previousMillisFloat = millis();
-      // ne
-    }
-
-    else if (nextCommand == 'b')
-    {
-      back();
-      previousMillisFloat = millis();
-    }
-    else if (nextCommand == 's')
-    {
-      stop();
-    }
-    nextCommand = 's';
+    stop();
+    currentCommand++;
+    move();
   }
   if (currentMillis - previousMillis >= interval)
   {
@@ -180,26 +180,24 @@ void loop()
     previousMillis = currentMillis;
     sensor.read();
     Serial.println(sensor.depth());
-    sendReadings.p[datacount] = int(round(sensor.pressure() * 100));
-    sendReadings.d[datacount] = int(round(sensor.depth() * 100));
-    sendReadings.t[datacount] = millis();
-    datacount++;
+    // chekc to make sure data is not full
 
-    if (datacount >= 10)
+    if (strlen(data) < 1000)
+      sprintf(data, "t%dp%dd%d,", int(round(millis() / 100)), int(round(sensor.pressure() * 100)), int(round(sensor.depth() * 100)));
+
+    if (datacount == 10)
     {
+      Serial.println(data);
+      sendReadings.data = data;
       esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
+    }
+    else
+    {
+      datacount++;
     }
   }
 }
-void printIntArray(int arr[])
-{
-  for (int i = 0; i < 10; i++)
-  {
-    Serial.print(arr[i]);
-    Serial.print(" "); // Optional: Adds a space between elements for readability
-  }
-  Serial.println(); // Moves to the next line after printing all elements
-}
+
 void stop()
 {
   Serial.println("stpoing");
@@ -211,7 +209,6 @@ void stop()
 void back()
 {
   Serial.println("back");
-  floatIsStopped = false;
 
   digitalWrite(IN1_PIN, LOW);
   digitalWrite(IN2_PIN, HIGH);
@@ -219,7 +216,6 @@ void back()
 void forward()
 {
   Serial.println("forward");
-  floatIsStopped = false;
 
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
