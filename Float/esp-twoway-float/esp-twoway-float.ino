@@ -14,7 +14,8 @@ MS5837 sensor;
 // loose one FC:F5:C4:91:A4:86
 
 uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
-// uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x16, 0x19, 0xB5};//Float
+// uint8_t broadcastAddress[] = {0xC8, 0xC9, 0xA3, 0x93, 0x96, 0x34}; //Float
+
 
 // Digital pin connected to the DHT sensor
 
@@ -25,6 +26,7 @@ uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
 const long interval = 5000;
 unsigned long previousMillis = 0; // will store last time DHT was updated
 long floatDur = 0;
+long waitTime=0;
 unsigned long previousMillisFloat = 0; // will store last time DHT was updated
 bool floatIsStopped = true;
 char nextCommand = 's';
@@ -41,9 +43,9 @@ typedef struct control_message
 
 typedef struct send_message
 {
-  int p[120];
-  int d[120];
-  int t[120];
+  int p[20];
+  // int d[120];
+  int t[20];
 } send_message;
 
 // Create a struct_message called DHTReadings to hold sensor readings
@@ -77,7 +79,7 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
   Serial.print(ControlData.c);
   Serial.print(" Time:");
   Serial.println(ControlData.val);
-  floatDur = ControlData.val;
+  waitTime = ControlData.val;
   previousMillisFloat = millis();
 
   if (ControlData.c == 'f')
@@ -154,7 +156,11 @@ void setup()
 void loop()
 {
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisFloat >= floatDur && !floatIsStopped)
+  if (currentMillis - previousMillisFloat >= 5000 && !floatIsStopped)
+  {
+   stop();
+  }
+    if (currentMillis - previousMillisFloat >= (5000+waitTime) )
   {
     if (nextCommand == 'f')
     {
@@ -181,14 +187,14 @@ void loop()
     sensor.read();
     Serial.println(sensor.depth());
     sendReadings.p[datacount] = int(round(sensor.pressure() * 100));
-    sendReadings.d[datacount] = int(round(sensor.depth() * 100));
-    sendReadings.t[datacount] = millis();
+    // sendReadings.d[datacount] = int(round(sensor.depth() * 100));
+    sendReadings.t[datacount] =int(round( millis()/1000));
     datacount++;
 
-    if (datacount >= 10)
-    {
+    // if (datacount >= 10)
+    // {
       esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
-    }
+    // }
   }
 }
 void printIntArray(int arr[])
