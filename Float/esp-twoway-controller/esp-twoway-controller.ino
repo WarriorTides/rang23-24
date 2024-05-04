@@ -7,7 +7,7 @@
 
 // loose one 8C:AA:B5:4F:F1:4A
 //  uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86};//Topside
-uint8_t broadcastAddress[] = {0x8C, 0xAA, 0xB5, 0x16, 0x19, 0xB5}; // Float
+uint8_t broadcastAddress[] = {0xC8, 0xC9, 0xA3, 0x93, 0x96, 0x34};
 
 String input = "";
 
@@ -28,9 +28,9 @@ typedef struct control_message
 
 typedef struct reciv_message
 {
-  int p[120];
-  int d[120];
-  int t[120];
+  int p[20];
+  // int d[120];
+  int t[20];
 } reciv_message;
 
 // Create a struct_message called DHTReadings to hold sensor readings
@@ -55,15 +55,32 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
 }
 
 // Callback when data is received
+int lasttime=0;
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
+  
   memcpy(&recivReadings, incomingData, sizeof(recivReadings));
   Serial.print("Bytes received: ");
+  lasttime=0;
   Serial.println(len);
 
-  Serial.print("Depth: ");
-  printIntArray(recivReadings.d);
-  Serial.print("   Preassure: ");
+  // Serial.print("Depth: ");
+  // printIntArray(recivReadings.d);
+  for(int i =0; i<20; i++){
+    if(lasttime>recivReadings.t[0]){
+      break;
+    }
+    else{
+      lasttime=recivReadings.t[0];
+      Serial.print("DATA:  Team: RNO6 Pressure: ");
+      Serial.print(float(recivReadings.p[0])/1000);
+      Serial.print("Kpa Local Time:");
+      Serial.println(lasttime);
+      Serial.println("s");
+
+
+    }
+  }
   printIntArray(recivReadings.p);
 
   Serial.print("   Time: ");
@@ -125,9 +142,10 @@ void loop()
 
 void printIntArray(int arr[])
 {
-  for (int i = 0; i < 120; i++)
+  for (int i = 0; i < 10; i++)
   {
     Serial.print(arr[i]);
     Serial.print(" "); // Optional: Adds a space between elements for readability
+
   }
 }
