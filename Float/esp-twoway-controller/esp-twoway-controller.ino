@@ -28,9 +28,9 @@ typedef struct control_message
 
 typedef struct reciv_message
 {
-  int p[20];
+  int p;
   // int d[120];
-  int t[20];
+  int t;
 } reciv_message;
 
 // Create a struct_message called DHTReadings to hold sensor readings
@@ -55,36 +55,18 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
 }
 
 // Callback when data is received
-int lasttime=0;
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
-  
+
   memcpy(&recivReadings, incomingData, sizeof(recivReadings));
   Serial.print("Bytes received: ");
-  lasttime=0;
+  lasttime = 0;
   Serial.println(len);
-
-  // Serial.print("Depth: ");
-  // printIntArray(recivReadings.d);
-  for(int i =0; i<20; i++){
-    if(lasttime>recivReadings.t[0]){
-      break;
-    }
-    else{
-      lasttime=recivReadings.t[0];
-      Serial.print("DATA:  Team: RNO6 Pressure: ");
-      Serial.print(float(recivReadings.p[0])/1000);
-      Serial.print("Kpa Local Time:");
-      Serial.println(lasttime);
-      Serial.println("s");
-
-
-    }
-  }
-  printIntArray(recivReadings.p);
-
-  Serial.print("   Time: ");
-  printIntArray(recivReadings.t);
+  Serial.print("DATA:  Team: RNO6 Pressure: ");
+  Serial.print(float(recivReadings.p) / 100);
+  Serial.print("Kpa Local Time:");
+  Serial.println(float(recivReadings.t) / 10);
+  Serial.println("s");
 }
 
 void setup()
@@ -146,6 +128,5 @@ void printIntArray(int arr[])
   {
     Serial.print(arr[i]);
     Serial.print(" "); // Optional: Adds a space between elements for readability
-
   }
 }

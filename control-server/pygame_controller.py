@@ -33,14 +33,14 @@ arduino_port = 8888
 ARDUINO_DEVICE = (arduino_ip, arduino_port)
 SOCKETEVENT = pygame.event.custom_type()
 mapping = [
-    {"name": "OFL", "color": "gray", "index": 2, "posIndex": 0, "rightpad": 2},
-    {"name": "OFR", "color": "cyan", "index": 1, "posIndex": 1, "rightpad": 1},
-    {"name": "IFL", "color": "blue", "index": 0, "posIndex": 2, "rightpad": 0},
+    {"name": "OFL", "color": "gray", "index": 1, "posIndex": 0, "rightpad": 2},
+    {"name": "OFR", "color": "cyan", "index": 0, "posIndex": 1, "rightpad": 1},
+    {"name": "IFL", "color": "blue", "index": 4, "posIndex": 2, "rightpad": 0},
     {"name": "IFR", "color": "purple", "index": 5, "posIndex": 3, "rightpad": 2},
-    {"name": "IBL", "color": "yellow", "index": 3, "posIndex": 4, "rightpad": 0},
-    {"name": "IBR", "color": "red", "index": 4, "posIndex": 5, "rightpad": 1},
-    {"name": "OBL", "color": "orange", "index": 7, "posIndex": 6, "rightpad": 2},
-    {"name": "OBR", "color": "pink", "index": 6, "posIndex": 7, "rightpad": 0},
+    {"name": "IBL", "color": "yellow", "index": 2, "posIndex": 4, "rightpad": 0},
+    {"name": "IBR", "color": "red", "index": 6, "posIndex": 5, "rightpad": 1},
+    {"name": "OBL", "color": "orange", "index": 3, "posIndex": 6, "rightpad": 2},
+    {"name": "OBR", "color": "pink", "index": 7, "posIndex": 7, "rightpad": 0},
 ]
 mapping_dict = {item["name"]: item["index"] for item in mapping}
 print(mapping_dict)
@@ -81,14 +81,13 @@ def mapnum(
 def formatMessage(message):
     # convert message array to comma sepearted string
 
-    output = ""
-    if not RUN_THRUSTER:
-        output += "t"
+    output = "c"
+    if RUN_THRUSTER:
+        for i in range(len(message)):
+            output += "," + str(message[i])
     else:
-        output += "c"
-    for i in range(len(message)):
-        output += "," + str(message[i])
-
+        for i in range(len(message)):
+            output += ",1500"
     return output
 
 
@@ -211,15 +210,16 @@ class mainProgram(object):
 
     def control(self):
         # print("Control")
-        if self.buttons[2] == 1:  # square button
-            self.runpid = not self.runpid
-            if self.runpid:
-                self.curMessage = "n"
-                print("Running PID")
-            else:
-                self.curMessage = "f"
-                print("Stopping PID")
-            self.sendUDP()
+        if RUN_THRUSTER:
+            if self.buttons[2] == 1:  # square button
+                self.runpid = not self.runpid
+                if self.runpid:
+                    self.curMessage = "n"
+                    print("Running PID")
+                else:
+                    self.curMessage = "f"
+                    print("Stopping PID")
+                self.sendUDP()
         if (
             self.axes[-2] == 1 and not self.maxThrottle == 0.3
         ):  # left trigger is index: 5
@@ -278,7 +278,6 @@ class mainProgram(object):
 
         # forward,right,up are positive
         # cr
-
         max_motor = max(abs(x) for x in combined)
         max_input = max(
             abs(surge), abs(sway), abs(heave), abs(yaw), abs(pitch), abs(roll)

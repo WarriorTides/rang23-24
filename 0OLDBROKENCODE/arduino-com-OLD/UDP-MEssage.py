@@ -9,12 +9,13 @@ arduino_port = 8888
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Bind the socket to a specific network interface and port number
-sock.bind(("192.168.1.204", arduino_port))
+sock.bind(("192.168.1.164", arduino_port))
 
 # The message to send
 
 try:
     # Send data continously- used to test rate of messages
+    sock.settimeout(1)
     while True:
         # message = input("Enter message: ")
 
@@ -25,8 +26,14 @@ try:
         sent = sock.sendto(message.encode(), (arduino_ip, arduino_port))
         time.sleep(0.01)
         print("Waiting for response...")
-        data, server = sock.recvfrom(8888)
-        print(f"Received: {data.decode()}")
+        try:
+            data, server = sock.recvfrom(8888)
+            print(f"Received: {data.decode()}")
+        except socket.timeout:
+            print("No response received")
+            continue
+        # data, server = sock.recvfrom(8888)
+        # print(f"Received: {data.decode()}")
         # time.sleep(0.1)
 
 

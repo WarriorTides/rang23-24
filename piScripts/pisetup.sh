@@ -43,7 +43,7 @@ echo "Packages are installed ang git cloned"
 # rm crontab_new
 
 # enable cameras
-# raspi-config nonint do_legacy 0
+raspi-config nonint do_legacy 0
 # curl -d "camera enabled" ntfy.aayanmaheshwari.com/test
 
 # give more memory

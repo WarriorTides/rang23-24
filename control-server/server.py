@@ -63,5 +63,5 @@ if __name__ == "__main__":
     socketio_thread.start()
     # pid_thread = threading.Thread(target=getPID.runStuff)
     # pid_thread.start()
-    # time.sleep(1)
+    time.sleep(3)
     pygame_controller.runJoyStick()

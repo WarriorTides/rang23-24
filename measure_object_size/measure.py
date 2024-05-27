@@ -27,7 +27,7 @@ def calculateDistance(x1, y1, x2, y2):
 
 
 # import and view image using cv2
-path = "./test.png"
+path = "./model.jpeg"
 image = cv2.imread(path)
 cv2.imshow("image", image)
 
@@ -45,7 +45,7 @@ bar2_length = calculateDistance(x1B, y1B, x2B, y2B)
 
 rate = bar2_length / bar1_length
 
-bar1_actual = 15  # actual length of known bar in centimeters
+bar1_actual = 8.17  # actual length of known bar in centimeters
 
 bar2_actual = round((rate * bar1_actual), 2)
 

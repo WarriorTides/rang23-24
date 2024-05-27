@@ -16,7 +16,6 @@ MS5837 sensor;
 uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
 // uint8_t broadcastAddress[] = {0xC8, 0xC9, 0xA3, 0x93, 0x96, 0x34}; //Float
 
-
 // Digital pin connected to the DHT sensor
 
 // Define variables to store DHT readings to be sent
@@ -24,13 +23,14 @@ uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
 // Define variables to store incoming readings
 
 const long interval = 5000;
+unsigned expandtime = 20000;
 unsigned long previousMillis = 0; // will store last time DHT was updated
 long floatDur = 0;
-long waitTime=0;
+long waitTime = 0;
 unsigned long previousMillisFloat = 0; // will store last time DHT was updated
 bool floatIsStopped = true;
 char nextCommand = 's';
-
+bool sendSuccess = false;
 int datacount = 0;
 // Variable to store if sending data was successful
 String success;
@@ -43,11 +43,13 @@ typedef struct control_message
 
 typedef struct send_message
 {
-  int p[20];
+  int p;
   // int d[120];
-  int t[20];
+  int t;
 } send_message;
 
+int preassurReadings[150];
+int timeReadings[150];
 // Create a struct_message called DHTReadings to hold sensor readings
 control_message ControlData;
 
@@ -62,10 +64,12 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
   {
     Serial.println("Delivery success");
     datacount = 0;
+    sendSuccess = true;
   }
   else
   {
     Serial.println("Delivery fail");
+    sendSuccess = false;
   }
 }
 
@@ -77,6 +81,7 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
   Serial.println(len);
   Serial.print("COmmand: ");
   Serial.print(ControlData.c);
+
   Serial.print(" Time:");
   Serial.println(ControlData.val);
   waitTime = ControlData.val;
@@ -155,46 +160,39 @@ void setup()
 
 void loop()
 {
+
   unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisFloat >= 5000 && !floatIsStopped)
-  {
-   stop();
-  }
-    if (currentMillis - previousMillisFloat >= (5000+waitTime) )
+
+  if (currentMillis - previousMillisFloat >= (waitTime) && !floatIsStopped)
   {
     if (nextCommand == 'f')
     {
       forward();
-      previousMillisFloat = millis();
-      // ne
     }
 
     else if (nextCommand == 'b')
     {
       back();
-      previousMillisFloat = millis();
     }
-    else if (nextCommand == 's')
-    {
-      stop();
-    }
+    // else if (nextCommand == 's')
+    // {
+    //   stop();
+    // }
     nextCommand = 's';
   }
+
   if (currentMillis - previousMillis >= interval)
   {
     // save the last time you updated the DHT values
     previousMillis = currentMillis;
     sensor.read();
-    Serial.println(sensor.depth());
-    sendReadings.p[datacount] = int(round(sensor.pressure() * 100));
+    // Serial.println(sensor.depth());
+    preassurReadings[datacount] = int(round(sensor.pressure() * 100));
     // sendReadings.d[datacount] = int(round(sensor.depth() * 100));
-    sendReadings.t[datacount] =int(round( millis()/1000));
+    timeReadings[datacount] = int(round(millis() / 100));
     datacount++;
 
-    // if (datacount >= 10)
-    // {
-      esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
-    // }
+    espNOWSend();
   }
 }
 void printIntArray(int arr[])
@@ -229,4 +227,27 @@ void forward()
 
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
+}
+int lastTime = 0;
+void espNOWSend()
+{
+  // Copy readings to sendReadings struct
+  lastTime = 0;
+  for (int i = 0; i < 150; i++)
+  {
+    if (timeReadings[i] > lastTime)
+    {
+      lastTime = timeReadings[i];
+      sendReadings.p = preassurReadings[i];
+      // sendReadings.d[i] = depthReadings[i];
+      sendReadings.t = timeReadings[i];
+
+      esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
+      delay(5);
+      if (!sendSuccess)
+      {
+        break;
+      }
+        }
+  }
 }
