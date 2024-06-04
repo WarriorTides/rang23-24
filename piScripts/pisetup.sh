@@ -18,7 +18,7 @@ if [[ "$(echo -e "GET http://google.com HTTP/1.0\n\n" | nc google.com 80 > /dev/
 fi
 
 # Makes sure the PI is up to date. This could cause things to break in the future
-apt update -y
+
 # curl -d "apt updated" ntfy.aayanmaheshwari.com/test
 echo "apt updated"
 rpi-update -y
@@ -29,7 +29,6 @@ echo "rpi updated"
 # dpkg -l | grep git || apt install git -y
 apt install git ncat nmap -y
 
-git clone https://github.com/WarriorTides/rang23-24.git 
 
 echo "Packages are installed ang git cloned"
 # curl -d "Packages are are installed" ntfy.aayanmaheshwari.com/test
