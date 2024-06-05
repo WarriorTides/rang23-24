@@ -22,16 +22,18 @@ uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
 
 // Define variables to store incoming readings
 
-const long interval = 5000;
-unsigned expandtime = 20000;
-unsigned long previousMillis = 0; // will store last time DHT was updated
-long floatDur = 0;
-long waitTime = 0;
-unsigned long previousMillisFloat = 0; // will store last time DHT was updated
+const long interval = 5000;            // interval to send readigns
+unsigned expandtime = 18000;           // time to expand
+long waitTime = 0;                     // wait time between expandinga nd contracitng - set by message sent
+unsigned long previousMillisFloat = 0; // timer for float expansion/stopping
 bool floatIsStopped = true;
 char nextCommand = 's';
 bool sendSuccess = false;
 int datacount = 0;
+int datasendindex = 0;
+bool shouldStop = false;
+unsigned long previousMillis = 0; // counter used to time readings being sent
+
 // Variable to store if sending data was successful
 String success;
 
@@ -63,13 +65,19 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
   if (sendStatus == 0)
   {
     Serial.println("Delivery success");
-    datacount = 0;
-    sendSuccess = true;
+
+    if (datacount <= datasendindex)
+    {
+      espNOWSend(datasendindex);
+    }
+    else
+    {
+      datacount = 0;
+    }
   }
   else
   {
     Serial.println("Delivery fail");
-    sendSuccess = false;
   }
 }
 
@@ -84,10 +92,17 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 
   Serial.print(" Time:");
   Serial.println(ControlData.val);
-  waitTime = ControlData.val;
-  previousMillisFloat = millis();
-
-  if (ControlData.c == 'f')
+  if (ControlData.c == 't')
+  {
+    expandtime = ControlData.val;
+  }
+  else
+  {
+    waitTime = ControlData.val;
+    previousMillisFloat = millis();
+  }
+c:
+  \Users if (ControlData.c == 'f')
   {
     forward();
     nextCommand = 'b';
@@ -129,7 +144,7 @@ void setup()
 
   // .init sets the sensor model for us but we can override it if required.
   // Uncomment the next line to force the sensor model to the MS5837_30BA.
-  // sensor.setModel(MS5837::MS5837_30BA);
+  sensor.setModel(MS5837::MS5837_02BA);
 
   sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
 
@@ -162,22 +177,28 @@ void loop()
 {
 
   unsigned long currentMillis = millis();
+  if (currentMillis - previousMillisFloat >= expandtime && !floatIsStopped)
+  {
+    stop();
+  }
 
-  if (currentMillis - previousMillisFloat >= (waitTime) && !floatIsStopped)
+  if (currentMillis - previousMillisFloat >= (waitTime + expandtime))
   {
     if (nextCommand == 'f')
     {
       forward();
+      previousMillisFloat = millis();
     }
 
     else if (nextCommand == 'b')
     {
       back();
+      previousMillisFloat = millis();
     }
-    // else if (nextCommand == 's')
-    // {
-    //   stop();
-    // }
+    else if (nextCommand == 's')
+    {
+      stop();
+    }
     nextCommand = 's';
   }
 
@@ -187,12 +208,12 @@ void loop()
     previousMillis = currentMillis;
     sensor.read();
     // Serial.println(sensor.depth());
-    preassurReadings[datacount] = int(round(sensor.pressure() * 100));
+    preassurReadings[datacount] = int(round(sensor.depth() * 100));
     // sendReadings.d[datacount] = int(round(sensor.depth() * 100));
     timeReadings[datacount] = int(round(millis() / 100));
     datacount++;
 
-    espNOWSend();
+    espNOWSend(0);
   }
 }
 void printIntArray(int arr[])
@@ -219,6 +240,8 @@ void back()
 
   digitalWrite(IN1_PIN, LOW);
   digitalWrite(IN2_PIN, HIGH);
+  // shouldStop=true;
+  // counterForStoping=millis();
 }
 void forward()
 {
@@ -227,27 +250,17 @@ void forward()
 
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
+  // shouldStop=true;
+  // counterForStoping=millis();
 }
-int lastTime = 0;
-void espNOWSend()
+
+void espNOWSend(int index)
 {
   // Copy readings to sendReadings struct
-  lastTime = 0;
-  for (int i = 0; i < 150; i++)
-  {
-    if (timeReadings[i] > lastTime)
-    {
-      lastTime = timeReadings[i];
-      sendReadings.p = preassurReadings[i];
-      // sendReadings.d[i] = depthReadings[i];
-      sendReadings.t = timeReadings[i];
 
-      esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
-      delay(5);
-      if (!sendSuccess)
-      {
-        break;
-      }
-        }
-  }
+  sendReadings.p = preassurReadings[i];
+  // sendReadings.d[i] = depthReadings[i];
+  sendReadings.t = timeReadings[i];
+  datasendindex++;
+  esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
 }

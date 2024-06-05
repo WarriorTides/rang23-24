@@ -3,11 +3,11 @@
 #include <espnow.h>
 
 // REPLACE WITH THE MAC Address of your receiver
-// float one 80:7D:3A:49:34:95
+// float one 84:0D:8E:B7:E3:02
 
 // loose one 8C:AA:B5:4F:F1:4A
 //  uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86};//Topside
-uint8_t broadcastAddress[] = {0xC8, 0xC9, 0xA3, 0x93, 0x96, 0x34};
+uint8_t broadcastAddress[] = {0x84, 0x0D, 0x8E, 0xB7, 0xE3, 0x02};
 
 String input = "";
 
@@ -53,14 +53,13 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
     Serial.println("Delivery fail");
   }
 }
-
 // Callback when data is received
 void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
 {
 
   memcpy(&recivReadings, incomingData, sizeof(recivReadings));
   Serial.print("Bytes received: ");
-  lasttime = 0;
+  // lasttime = 0;
   Serial.println(len);
   Serial.print("DATA:  Team: RNO6 Pressure: ");
   Serial.print(float(recivReadings.p) / 100);
@@ -108,7 +107,7 @@ void loop()
     input = Serial.readStringUntil('\n');
     int index = input.indexOf('/');
     ControlData.c = input.substring(0, index).charAt(0);
-    ControlData.val = (input.substring(index + 1)).toInt();
+    ControlData.val = (input.substring(index + 1)).toInt() * 1000;
     Serial.print(ControlData.c);
     Serial.print(ControlData.val);
     // Send message via ESP-NOW
