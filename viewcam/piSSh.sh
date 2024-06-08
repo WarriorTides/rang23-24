@@ -1,9 +1,9 @@
 #!/bin/bash
 
-HOSTNAME="192.168.1.101"
+HOSTNAME="bob.local"
 
 if [ "$1" == "-b" ]; then
-    HOSTNAME="192.168.1.102"
+    HOSTNAME="bobalina.local"
     PYTHON_ARG="-b"
 else
     PYTHON_ARG=""
@@ -20,7 +20,7 @@ function handle_sigint() {
 }
 
 # Use trap to catch SIGINT and call handle_sigint when it's received
-trap handle_sigint SIGINT
+trap handle_sigint SIGINTxp
 
 
 # Wait for the specified hostname to respond to ping

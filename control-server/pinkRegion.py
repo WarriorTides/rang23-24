@@ -166,7 +166,7 @@ def runAutonomous(cap):
     cv2.destroyAllWindows()
 
 
-camera = "http://192.168.1.101:5000/"
+camera = "http://bob.local:5000/"
 
 # Initializes the Websocket client
 sio = socketio.Client()

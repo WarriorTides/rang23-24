@@ -2,7 +2,7 @@
 cd /Users/aayanmaheshwari/Desktop/MATE/rang23-24/viewcam
 
 # sleep 2
-HOSTNAME="192.168.1.101"
+HOSTNAME="bob.local"
 
 if [ "$1" == "-b" ]; then
     HOSTNAME="192.168.1.102"
