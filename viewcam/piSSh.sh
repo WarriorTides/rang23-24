@@ -20,7 +20,7 @@ function handle_sigint() {
 }
 
 # Use trap to catch SIGINT and call handle_sigint when it's received
-trap handle_sigint SIGINTxp
+trap handle_sigint SIGINT
 
 
 # Wait for the specified hostname to respond to ping

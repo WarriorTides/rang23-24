@@ -29,6 +29,7 @@ typedef struct control_message
 typedef struct reciv_message
 {
   int p;
+  int d;
   // int d[120];
   int t;
 } reciv_message;
@@ -61,10 +62,12 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
   Serial.print("Bytes received: ");
   // lasttime = 0;
   Serial.println(len);
-  Serial.print("DATA:  Team: RNO6 Pressure: ");
+  Serial.print("DATA:  Team: RN37 Pressure:");
   Serial.print(float(recivReadings.p) / 100);
-  Serial.print("Kpa Local Time:");
-  Serial.println(float(recivReadings.t) / 10);
+  Serial.print("Kpa Depth:");
+  Serial.print(float(recivReadings.d) / 100);
+  Serial.print("m Local Time:");
+  Serial.print(float(recivReadings.t) / 10);
   Serial.println("s");
 }
 

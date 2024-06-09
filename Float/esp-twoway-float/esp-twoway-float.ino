@@ -11,9 +11,9 @@ MS5837 sensor;
 // REPLACE WITH THE MAC Address of your receiver
 
 // float one 8C:AA:B5:16:19:B5
-// loose one FC:F5:C4:91:A4:86
+// loose one FC:F5:C4:91:21:EC
 
-uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0xA4, 0x86}; // Topside
+uint8_t broadcastAddress[] = {0xFC, 0xF5, 0xC4, 0x91, 0x21, 0xEC}; // Topside
 // uint8_t broadcastAddress[] = {0xC8, 0xC9, 0xA3, 0x93, 0x96, 0x34}; //Float
 
 // Digital pin connected to the DHT sensor
@@ -31,7 +31,7 @@ char nextCommand = 's';
 bool sendSuccess = false;
 int datacount = 0;
 int datasendindex = 0;
-bool shouldStop = false;
+// bool shouldStop = false;
 unsigned long previousMillis = 0; // counter used to time readings being sent
 
 // Variable to store if sending data was successful
@@ -46,12 +46,14 @@ typedef struct control_message
 typedef struct send_message
 {
   int p;
+  int d;
   // int d[120];
   int t;
 } send_message;
 
 int preassurReadings[150];
 int timeReadings[150];
+int depthReadings[150];
 // Create a struct_message called DHTReadings to hold sensor readings
 control_message ControlData;
 
@@ -66,7 +68,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
   {
     Serial.println("Delivery success");
 
-    if (datacount <= datasendindex)
+    if (datacount >= datasendindex)
     {
       espNOWSend(datasendindex);
     }
@@ -78,6 +80,7 @@ void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
   else
   {
     Serial.println("Delivery fail");
+    datasendindex = 0;
   }
 }
 
@@ -101,8 +104,7 @@ void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
     waitTime = ControlData.val;
     previousMillisFloat = millis();
   }
-c:
-  \Users if (ControlData.c == 'f')
+  if (ControlData.c == 'f')
   {
     forward();
     nextCommand = 'b';
@@ -208,29 +210,24 @@ void loop()
     previousMillis = currentMillis;
     sensor.read();
     // Serial.println(sensor.depth());
-    preassurReadings[datacount] = int(round(sensor.depth() * 100));
-    // sendReadings.d[datacount] = int(round(sensor.depth() * 100));
+    preassurReadings[datacount] = int(round(sensor.pressure() * 100));
+    depthReadings[datacount] = int(round(sensor.depth() * 100));
     timeReadings[datacount] = int(round(millis() / 100));
     datacount++;
 
     espNOWSend(0);
   }
 }
-void printIntArray(int arr[])
-{
-  for (int i = 0; i < 10; i++)
-  {
-    Serial.print(arr[i]);
-    Serial.print(" "); // Optional: Adds a space between elements for readability
-  }
-  Serial.println(); // Moves to the next line after printing all elements
-}
+
 void stop()
 {
-  Serial.println("stpoing");
-  digitalWrite(IN1_PIN, LOW);
-  digitalWrite(IN2_PIN, LOW);
-  floatIsStopped = true;
+  if (!floatIsStopped)
+  {
+    Serial.println("stpoing");
+    digitalWrite(IN1_PIN, LOW);
+    digitalWrite(IN2_PIN, LOW);
+    floatIsStopped = true;
+  }
 }
 
 void back()
@@ -256,11 +253,16 @@ void forward()
 
 void espNOWSend(int index)
 {
-  // Copy readings to sendReadings struct
+  // Copy readings to sendReadings structf
 
-  sendReadings.p = preassurReadings[i];
+  sendReadings.p = preassurReadings[index];
+  sendReadings.d = depthReadings[index];
   // sendReadings.d[i] = depthReadings[i];
-  sendReadings.t = timeReadings[i];
+  sendReadings.t = timeReadings[index];
   datasendindex++;
+  Serial.print("Sending Index: ");
+  Serial.print(index);
+  Serial.print("datacount: ");
+  Serial.println(datacount);
   esp_now_send(broadcastAddress, (uint8_t *)&sendReadings, sizeof(sendReadings));
 }

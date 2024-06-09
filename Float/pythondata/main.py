@@ -1,46 +1,45 @@
-import asyncio
+import msvcrt
 import serial
-
-# Define the serial port and baud rate for your Arduino
-SERIAL_PORT = "/dev/ttyUSB0"
-BAUD_RATE = 9600
+import time
+import matplotlib.pyplot as plt
 
 
-# Function to send data to Arduino
-async def send_data(arduino, data):
-    arduino.write(data.encode())
+def splitString(string, pref, end):
+    return string.split(pref)[1].split(end)[0]
 
 
-# Function to receive data from Arduino
-async def receive_data(arduino):
-    while True:
-        data = arduino.readline().decode().strip()
-        if data:
-            # Do something with the received data
-            print(f"Received data: {data}")
-
-
-# Main function
-async def main():
-    # Open the serial connection with Arduino
-    arduino = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-
-    # Start the receive_data task
-    receive_task = asyncio.create_task(receive_data(arduino))
-
-    while True:
-        # Ask the user for input
-        command1 = input("cmd:")
-        time1 = input("time:")
-        command2 = input("cmd:")
-        time2 = input("time:")
-        data = command1 + "," + time1 + "/" + command2 + "!" + time2
-        # Send the user input to Arduino
-        await send_data(arduino, data)
-
-        # Add any additional logic or processing here
-
-
-# Run the main function
+preassureData = []
+timeData = []
 if __name__ == "__main__":
-    asyncio.run(main())
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots()
+    ser = serial.Serial("COM24", 115200, timeout=1)
+    ser.reset_input_buffer()
+    ser.write(b"s\n")
+
+    dataString = ""
+
+    while True:
+        if ser.in_waiting > 0:
+            line = ser.readline().decode("utf-8").rstrip()
+            print(line)
+            if line.startswith("DATA"):
+                depth = float(splitString(line, "Depth:", "m"))
+                time_ = float(splitString(line, "me:", "s"))
+                ax.plot(time_, depth, "ro")  # Plot a red dot for each depth value
+                # ax.set_xlim(
+                #     time.time() - 10, time.time()
+                # )  # Set the x-axis to the last 10 seconds
+                ax.set_ylim(-1, 5)  # Adjust the y-axis limits as needed
+                plt.draw()  # Redraw the plot
+                plt.pause(0.01)  # Pause for a short period to allow the plot to update
+
+        if msvcrt.kbhit():
+            # print ("you pressed",msvcrt.getch(),"so now i will quit")
+            reciv = msvcrt.getch()
+            if (reciv) == b"\r":
+                ser.write(((dataString) + "\n").encode("utf-8"))
+                dataString = ""
+                # ser.write(((dataString)+"\n"))
+            dataString += (reciv).decode("utf-8").rstrip()
+            print(dataString)
