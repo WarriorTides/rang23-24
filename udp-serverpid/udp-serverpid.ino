@@ -1,10 +1,20 @@
 
 #include <UIPEthernet.h>
 #include "utility/logging.h"
-#include "MS5837.h"å
+#include "MS5837.h"
 #include <Wire.h>
 #include <Servo.h>
 #include <PID_v1.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+#define ONE_WIRE_BUS 4
+
+// Setup a oneWire instance to communicate with any OneWire devices
+OneWire oneWire(ONE_WIRE_BUS);
+
+// Pass our oneWire reference to Dallas Temperature sensor
+DallasTemperature sensors(&oneWire);
 
 typedef struct dataStorage
 {
@@ -53,6 +63,7 @@ void setup()
     datastore.servoAngles[1] = 15;
     datastore.servoAngles[2] = 17;
     datastore.initialized = true; // Mark the struct as initialized
+    sensors.begin();
 
     for (int i = 0; i < 8; i++)
     {
@@ -99,13 +110,15 @@ void loop()
             msg[len] = 0;
 
             depthSensor.read();
+            sensors.requestTemperatures();
+
             depthInput = depthSensor.depth();
 
             // Serial.print(("received: "));
             Serial.println(msg);
             char command = msg[0];
             String data = String(msg).substring(2);
-            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
+            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(sensors.getTempCByIndex(0));
             // Serial.print("Command: ");
             // Serial.println(command);
             if (command == 'c')
@@ -280,10 +293,12 @@ void loop()
         if (runpid && minirunpid)
         {
             depthSensor.read();
+            sensors.requestTemperatures();
+
             depthInput = depthSensor.depth();
             depthPID.Compute();
             writeDepth = int(trunc((depthOutput * -1) + 1500));
-            sendData = "Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(depthSensor.temperature());
+            sendData = "Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(sensors.getTempCByIndex(0));
             Serial.println(sendData);
             // if (millis() - previousMillis2 >= interval2)
             // {
