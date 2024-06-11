@@ -5,16 +5,10 @@
 #include <Wire.h>
 #include <Servo.h>
 #include <PID_v1.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
 
-#define ONE_WIRE_BUS 4
+#include "TSYS01.h"
 
-// Setup a oneWire instance to communicate with any OneWire devices
-OneWire oneWire(ONE_WIRE_BUS);
 
-// Pass our oneWire reference to Dallas Temperature sensor
-DallasTemperature sensors(&oneWire);
 
 typedef struct dataStorage
 {
@@ -39,6 +33,7 @@ bool runpid = false;
 
 bool minirunpid = false;
 MS5837 depthSensor;
+TSYS01 tempSensor;
 double depthInput, depthOutput;
 double depthSetpoint = -1;
 PID depthPID(&depthInput, &depthOutput, &depthSetpoint, datastore.p, datastore.i, datastore.d, DIRECT);
@@ -48,7 +43,7 @@ int writeDepth;
 void setup()
 {
     Wire.begin();
-    depthSensorSetup();
+    sensorSetup();
     Serial.begin(9600);
 
     // Set default values
@@ -63,7 +58,6 @@ void setup()
     datastore.servoAngles[1] = 15;
     datastore.servoAngles[2] = 17;
     datastore.initialized = true; // Mark the struct as initialized
-    sensors.begin();
 
     for (int i = 0; i < 8; i++)
     {
@@ -110,15 +104,14 @@ void loop()
             msg[len] = 0;
 
             depthSensor.read();
-            sensors.requestTemperatures();
-
+            tempSensor.read();
             depthInput = depthSensor.depth();
 
             // Serial.print(("received: "));
             Serial.println(msg);
             char command = msg[0];
             String data = String(msg).substring(2);
-            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(sensors.getTempCByIndex(0));
+            sendData = String(msg).substring(2) + "ss" + String(depthSetpoint) + "pp" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(tempSensor.temperature());
             // Serial.print("Command: ");
             // Serial.println(command);
             if (command == 'c')
@@ -293,12 +286,11 @@ void loop()
         if (runpid && minirunpid)
         {
             depthSensor.read();
-            sensors.requestTemperatures();
-
+            tempSensor.read();
             depthInput = depthSensor.depth();
             depthPID.Compute();
             writeDepth = int(trunc((depthOutput * -1) + 1500));
-            sendData = "Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(sensors.getTempCByIndex(0));
+            sendData = "Setpoint: " + String(depthSetpoint) + "pwmwriting:" + String(writeDepth) + "dd" + String(depthInput) + "tt" + String(tempSensor.temperature());
             Serial.println(sendData);
             // if (millis() - previousMillis2 >= interval2)
             // {
@@ -343,9 +335,10 @@ void loop()
         }
     }
 }
-void depthSensorSetup()
+void sensorSetup()
 {
     depthSensor.setModel(MS5837::MS5837_02BA);
     depthSensor.init();
     depthSensor.setFluidDensity(997); // kg/m^3 (997 freshwater, 1029 for seawater)
+    tempSensor.init();
 }

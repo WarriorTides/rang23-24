@@ -1,52 +1,81 @@
-# Calculator for length of Parts
 import cv2
 import math
+import numpy as np
 
+image = None
 pointCoordinates1 = []
 pointCoordinates2 = []
+scale_length = None
+scale_pixels = None
 
 
-# function to get coordinates of points clicked on image
 def click_points(event, x, y, flags, param):
+    global pointCoordinates1, pointCoordinates2
+
     if event == cv2.EVENT_LBUTTONDOWN:
-        coordinateValue = x, y
-        if len(pointCoordinates1) < 2:
-            pointCoordinates1.append(coordinateValue)
-        elif len(pointCoordinates1) >= 2 and len(pointCoordinates2) < 2:
-            pointCoordinates2.append(coordinateValue)
+        coordinate = x, y
+        if not scale_length:
+            if len(pointCoordinates1) < 2:
+                pointCoordinates1.append(coordinate)
+            else:
+                pointCoordinates1 = []
+                pointCoordinates1.append(coordinate)
+        else:
+            if len(pointCoordinates2) < 2:
+                pointCoordinates2.append(coordinate)
+            else:
+                pointCoordinates2 = []
+                pointCoordinates2.append(coordinate)
 
-        # display coordinates on image window
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(image, str(x) + "," + str(y), (x, y), font, 1, (255, 0, 0), 2)
-        cv2.imshow("image", image)
+
+        cv2.circle(image, (x, y), 10, (255, 0, 0), 10)
+
+        # cv2.putText(image, str(x) + "," + str(y), (x, y), font, 1, (255, 0, 0), 2)
+        cv2.imshow("Image", image)
 
 
-def calculateDistance(x1, y1, x2, y2):
-    dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-    return dist
+def calculate_distance(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
 
-# import and view image using cv2
-path = "./model.jpeg"
+def set_scale_length():
+    global scale_length, scale_pixels
+
+    if len(pointCoordinates1) == 2:
+        x1, y1 = pointCoordinates1[0]
+        x2, y2 = pointCoordinates1[1]
+        scale_pixels = calculate_distance(x1, y1, x2, y2)
+        scale_length = float(
+            input("Enter the actual length (in cm) of the selected scale: ")
+        )
+
+
+def calculate_length():
+    global scale_length, scale_pixels
+
+    if len(pointCoordinates2) == 2:
+        x1, y1 = pointCoordinates2[0]
+        x2, y2 = pointCoordinates2[1]
+        pixels = calculate_distance(x1, y1, x2, y2)
+        length = (pixels * scale_length) / scale_pixels
+        print(f"Length: {length:.2f} cm")
+
+
+path = "./image.png"
 image = cv2.imread(path)
-cv2.imshow("image", image)
+cv2.imshow("Image", image)
 
-# get length of items in picture
-cv2.setMouseCallback("image", click_points)
+cv2.setMouseCallback("Image", click_points)
 
-cv2.waitKey(0)
+while True:
+    key = cv2.waitKey(1) & 0xFF
 
-x1A, y1A = pointCoordinates1[0]
-x2A, y2A = pointCoordinates1[1]
-x1B, y1B = pointCoordinates2[0]
-x2B, y2B = pointCoordinates2[1]
-bar1_length = calculateDistance(x1A, y1A, x2A, y2A)
-bar2_length = calculateDistance(x1B, y1B, x2B, y2B)
+    if key == ord("s"):
+        set_scale_length()
+    elif key == ord("m"):
+        calculate_length()
+    elif key == ord("q"):
+        break
 
-rate = bar2_length / bar1_length
-
-bar1_actual = 8.17  # actual length of known bar in centimeters
-
-bar2_actual = round((rate * bar1_actual), 2)
-
-print("Length of unknown part: " + str(bar2_actual) + " cm")
+cv2.destroyAllWindows()
