@@ -10,7 +10,7 @@ def click_event(event, x, y, flags, param):
     global points
     if event == cv2.EVENT_LBUTTONDOWN:
         points.append((x, y))
-        cv2.circle(img, (x, y), 5, (0, 0, 255), -1)
+        cv2.circle(img, (x, y), 1, (0, 0, 255), -1)
         cv2.imshow("image", img)
 
         if len(points) == 4:
@@ -59,10 +59,13 @@ def click_event(event, x, y, flags, param):
 
             # Display the corrected image
             cv2.imshow("corrected image", result)
+            cv2.imwrite("./image.png", result)
 
 
 # Load the image
-img = cv2.imread("/Users/aayanmaheshwari/Downloads/silly.jpg")
+img = cv2.imread(
+    "/Users/aayanmaheshwari/Desktop/MATE/rang23-24/viewcam/2024-06-11 17:42:03.jpg"
+)
 
 # Display the image and set the mouse callback function
 cv2.imshow("image", img)

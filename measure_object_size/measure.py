@@ -2,6 +2,7 @@ import cv2
 import math
 import numpy as np
 
+print("imported")
 image = None
 pointCoordinates1 = []
 pointCoordinates2 = []
@@ -29,7 +30,7 @@ def click_points(event, x, y, flags, param):
 
         font = cv2.FONT_HERSHEY_SIMPLEX
 
-        cv2.circle(image, (x, y), 10, (255, 0, 0), 10)
+        cv2.circle(image, (x, y), 1, (255, 0, 0), 1)
 
         # cv2.putText(image, str(x) + "," + str(y), (x, y), font, 1, (255, 0, 0), 2)
         cv2.imshow("Image", image)

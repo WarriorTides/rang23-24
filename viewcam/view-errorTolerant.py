@@ -5,7 +5,7 @@ import cv2
 import sys
 
 print("imported cv2")
-
+savePath = "./"
 camera = "http://bob.local:5000"
 for arg in sys.argv:
     if arg == "-b":
@@ -58,7 +58,7 @@ def getCameraFeed(cap):
                 datestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 # "/Volumes/file-holder/"
                 video_writer = cv2.VideoWriter(
-                    "/Volumes/file-holder/" + datestring + ".mp4",
+                    savePath + datestring + ".mp4",
                     fourcc,
                     20.0,
                     (1280, 720),
@@ -74,7 +74,7 @@ def getCameraFeed(cap):
         # Take a picture on 'p' key press
         if key == ord("p"):
             datestring = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            image_name = "/Volumes/file-holder/" + datestring + ".jpg"
+            image_name = savePath + datestring + ".jpg"
             cv2.imwrite(image_name, frame)
             print(f"Image saved: {image_name}")
 
